@@ -1,0 +1,5 @@
+#!/bin/bash
+
+source /opt/autolabor/ros/catkin_ws/devel/setup.bash
+roslaunch simulation_launch create_map_for_two_laser.launch
+
