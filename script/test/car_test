@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-if [ ! -e "/dev/ttyUSB2" ]; then
+if [ ! -e "/dev/autolabor_pro1" ]; then
   zenity --error --text="底层连接失败，请检查机器人是否连接至上位机，并确保上位>机控制开关打开以及急停按钮未按下。"
   exit 0
 fi

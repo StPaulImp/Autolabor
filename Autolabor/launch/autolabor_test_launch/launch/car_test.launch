@@ -9,6 +9,7 @@
     <node name="autolabor_driver" pkg="autolabor_pro1_driver" type="autolabor_pro1_driver" output="screen">
         <remap from="/wheel_odom" to="/odom"/>
         <param name="port_name" value="/dev/autolabor_pro1" />
+        <!-- <param name="port_name" value="/dev/ttyUSB2" /> -->
         <param name="odom_frame" value="odom" />
         <param name="base_frame" value="base_link" />
 
@@ -38,6 +39,7 @@
         <param name="angular_step" value="0.314" />
     </node>
 
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+    <!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" /> -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find autolabor_test_launch)/rviz/car.rviz" />
 </launch>
