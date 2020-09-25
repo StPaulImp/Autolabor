@@ -27,18 +27,6 @@ options = {
     {
       action = "dump_num_points",
     },
-    -- {
-    --   action = "fixed_ratio_sampler",
-    --   sampling_ratio = 0.01,
-    -- },
-    -- {
-    --   action = "write_ply",
-    --   filename = "points.ply",
-    -- },
-    -- {
-    --   action = "write_pcd",
-    --   filename = "map.pcd"
-    -- },
 
     -- Gray X-Rays. These only use geometry to color pixels.
     {
