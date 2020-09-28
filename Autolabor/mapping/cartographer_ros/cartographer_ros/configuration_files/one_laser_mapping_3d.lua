@@ -20,7 +20,6 @@ options = {
   trajectory_builder = TRAJECTORY_BUILDER,
   map_frame = "map",
   tracking_frame = "base_link",
-  -- tracking_frame = "mti/data",
   published_frame = "base_link",
   odom_frame = "odom",
   provide_odom_frame = true,
@@ -43,12 +42,10 @@ options = {
   landmarks_sampling_ratio = 1.,
 }
 
-TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 1 
--- 160
+TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 1
 -- TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 160 
-TRAJECTORY_BUILDER_2D.use_imu_data = false
-TRAJECTORY_BUILDER_2D.voxel_filter_size = 0.1
-
+-- TRAJECTORY_BUILDER_3D.use_imu_data = true
+-- TRAJECTORY_BUILDER_3D.voxel_filter_size = 0.1
 MAP_BUILDER.use_trajectory_builder_3d = true
 MAP_BUILDER.num_background_threads = 7
 POSE_GRAPH.optimization_problem.huber_scale = 5e2

@@ -6,15 +6,15 @@ if [ ! -e "/dev/autolabor_pro1" ]; then
   exit 0
 fi
 
-if [ ! -e "/dev/box_1" ]; then
-  zenity --error --text="单线激光雷达（前）连接失败，请检查雷达是否连接至上位机。"
-  exit 0
-fi
+# if [ ! -e "/dev/box_1" ]; then
+#   zenity --error --text="单线激光雷达（前）连接失败，请检查雷达是否连接至上位机。"
+#   exit 0
+# fi
 
-if [ ! -e "/dev/box_2" ]; then
-  zenity --error --text="单线激光雷达（后）连接失败，请检查雷达是否连接至上位机>。"
-  exit 0
-fi
+# if [ ! -e "/dev/box_2" ]; then
+#   zenity --error --text="单线激光雷达（后）连接失败，请检查雷达是否连接至上位机>。"
+#   exit 0
+# fi
 
 
 source ${HOME}/catkin_ws/devel/setup.bash
