@@ -1,10 +1,5 @@
 <launch>
     <arg name="gui" default="false" />
-
-    <param name="use_sim_time" value="false" />
-    <param name="robot_description" textfile="$(find autolabor_description)/urdf/autolabor_pro1_track_suit_3d.urdf" />
-    <param name="use_gui" value="$(arg gui)" />
-
     <arg name="model" default="RS16" />
     <arg name="device_ip" default="192.168.1.200" />
     <arg name="msop_port" default="6699" />
@@ -12,6 +7,10 @@
     <arg name="cut_angle" default="0" doc="If set at [0, 360), cut at specific angle feature activated, otherwise use the fixed packets number mode."/>
     <arg name="lidar_param_path" default="$(find rslidar_pointcloud)/data/rs_lidar_16/"/>
     <!-- <arg name="path_to_pcap" default="$(find rslidar_pointcloud)/data/rs_lidar_16/"/> -->
+
+    <param name="use_sim_time" value="false" />
+    <param name="robot_description" textfile="$(find autolabor_description)/urdf/autolabor_pro1_track_suit_3d.urdf" />
+    <param name="use_gui" value="$(arg gui)" />
 
     <!-- autolabor pro 1 驱动 -->
     <node name="autolabor_driver" pkg="autolabor_pro1_driver" type="autolabor_pro1_driver" output="screen">

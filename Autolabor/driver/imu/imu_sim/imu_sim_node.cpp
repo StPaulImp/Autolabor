@@ -4,7 +4,7 @@
 #include <sensor_msgs/Imu.h>
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h> 
-
+// #include <geometry_msgs/TransformStamped.h>
 
 nav_msgs::Odometry odom;
 
@@ -18,13 +18,14 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 int main(int argc, char **argv)
 {
     // Step 2: Initialization:
-    ros::init(argc, argv, "imu_sim");     
+    ros::init(argc, argv, "imu_sim");
     ros::NodeHandle nh;  
     ros::NodeHandle private_node("~");
     ros::Subscriber odom_sub = nh.subscribe("odom", 100, odomCallback);  
     ros::Publisher IMU_pub = nh.advertise<sensor_msgs::Imu>("imu",100);
-    ros::Rate loop_rate(100);
+    tf::TransformBroadcaster imu_broadcaster;
 
+    ros::Rate loop_rate(100);
     ros::Time current_time,last_time;
     current_time = ros::Time::now();
     last_time = ros::Time::now();
@@ -40,7 +41,6 @@ int main(int argc, char **argv)
     while(ros::ok())
     {         
         sensor_msgs::Imu imu_data;
-
         current_time = ros::Time::now();
 
         /*** 
@@ -62,6 +62,17 @@ int main(int argc, char **argv)
         x = odom.pose.pose.position.x;
         y = odom.pose.pose.position.y;
         // odom.pose.pose.position.z = 0.0;
+        //first, we'll publish the transform over tf
+        geometry_msgs::TransformStamped imu_trans;
+        imu_trans.header.stamp = current_time;
+        imu_trans.header.frame_id = "imu";
+        imu_trans.child_frame_id = "base_link";
+        imu_trans.transform.translation.x = x;
+        imu_trans.transform.translation.y = y;
+        imu_trans.transform.translation.z = 0.0;
+        imu_trans.transform.rotation = odom.pose.pose.orientation;
+        //send the transform
+        // imu_broadcaster.sendTransform(imu_trans);
 
         //since all odometry is 6DOF we'll need a quaternion created from yaw
         geometry_msgs::Quaternion odom_quat = odom.pose.pose.orientation;
