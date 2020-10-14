@@ -6,6 +6,7 @@
     <arg name="difop_port" default="7788" />
     <arg name="cut_angle" default="0" doc="If set at [0, 360), cut at specific angle feature activated, otherwise use the fixed packets number mode."/>
     <arg name="lidar_param_path" default="$(find rslidar_pointcloud)/data/rs_lidar_16/"/>
+    <arg name="bag_filename" default="map_3d.bag" />
     <!-- <arg name="path_to_pcap" default="$(find rslidar_pointcloud)/data/rs_lidar_16/"/> -->
 
     <param name="use_sim_time" value="false" />
@@ -79,4 +80,7 @@
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
     <node name="rviz" pkg="rviz" type="rviz" required="true"
       args="-d $(find cartographer_ros)/configuration_files/demo_3d.rviz" />
+    <!-- <node name="bag_record" pkg="rosbag" type="record" args="-->
+    <!-- split -->
+    <!-- size 200 rslidar_points imu -O $(arg bag_filename)" /> -->
 </launch>

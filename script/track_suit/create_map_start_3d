@@ -28,4 +28,6 @@ export ROS_MASTER_URI=http://$IP:11311/
 export ROS_IP=$IP
 
 roslaunch autolabor_navigation_launch create_map_for_one_laser_3d.launch
+rosbag record --split --size 500 rslidar_points imu -O map_3d.bag
+
 
