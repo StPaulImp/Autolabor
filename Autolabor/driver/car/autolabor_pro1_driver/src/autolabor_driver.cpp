@@ -151,6 +151,7 @@ void ChassisDriver::send_speed_callback(const ros::TimerEvent &) {
     short left, right;
 
     double linear_speed, angular_speed;
+    
     if ((ros::Time::now() - last_twist_time_).toSec() <= 1.0) {
         linear_speed = current_twist_.linear.x;
         angular_speed = current_twist_.angular.z;
@@ -286,6 +287,7 @@ void ChassisDriver::handle_speed_msg(uint8_t *buffer_data) {
         start_flag_ = false;
         return;
     }
+
     delta_time_ = (now_ - last_time_).toSec();
     if (delta_time_ >= (0.5 / control_rate_)) {
         double model_param;

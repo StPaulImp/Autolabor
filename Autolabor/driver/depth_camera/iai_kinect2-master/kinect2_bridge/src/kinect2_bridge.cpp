@@ -33,6 +33,8 @@
 #endif
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc/types_c.h>  
 
 #include <ros/ros.h>
 #include <nodelet/nodelet.h>
@@ -461,12 +463,12 @@ private:
   void initCompression(const int32_t jpegQuality, const int32_t pngLevel, const bool use_png)
   {
     compressionParams.resize(7, 0);
-    compressionParams[0] = CV_IMWRITE_JPEG_QUALITY;
+    compressionParams[0] = cv::IMWRITE_JPEG_QUALITY;//CV_IMWRITE_JPEG_QUALITY;
     compressionParams[1] = jpegQuality;
-    compressionParams[2] = CV_IMWRITE_PNG_COMPRESSION;
+    compressionParams[2] = cv::IMWRITE_PNG_COMPRESSION; //CV_IMWRITE_PNG_COMPRESSION;
     compressionParams[3] = pngLevel;
-    compressionParams[4] = CV_IMWRITE_PNG_STRATEGY;
-    compressionParams[5] = CV_IMWRITE_PNG_STRATEGY_RLE;
+    compressionParams[4] = cv::IMWRITE_PNG_STRATEGY; //CV_IMWRITE_PNG_STRATEGY;
+    compressionParams[5] = cv::IMWRITE_PNG_STRATEGY_RLE; //CV_IMWRITE_PNG_STRATEGY_RLE;
     compressionParams[6] = 0;
 
     if(use_png)

@@ -7,10 +7,10 @@ allow_unknown: true
 default_tolerance: 0.0
 
 # Specifies whether or not to visualize the potential area computed via a PointCloud2. (bool, default: false)
-visualize_potential: false
+visualize_potential: true
 
 # If true, use dijkstra's algorithm. Otherwise, A*. (bool, default: true)
-use_dijkstra: true
+use_dijkstra: false
 
 # If true, use the quadratic approximation of the potential. Otherwise, use a simpler calculation. (bool, default: true)
 use_quadratic: true

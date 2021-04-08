@@ -3,6 +3,7 @@
 
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
+#include "std_msgs/Bool.h"
 
 #define KEYBOARD_UP     103
 #define KEYBOARD_DOWN   108
@@ -27,6 +28,7 @@ public:
 private:
   ros::NodeHandle nh_;
   ros::Publisher twist_pub_;
+  ros::Publisher send_flag_pub_;
   ros::Timer twist_pub_timer_;
 
   int fd_;

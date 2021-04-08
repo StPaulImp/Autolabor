@@ -107,7 +107,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES imu_sim
-CATKIN_DEPENDS roscpp rospy std_msgs sensor_msgs
+CATKIN_DEPENDS roscpp rospy std_msgs sensor_msgs tf
 #  DEPENDS system_lib
 )
 

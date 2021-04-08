@@ -25,6 +25,7 @@ KeyboardControl::KeyboardControl():linear_state_(0), angular_state_(0), port_nam
 
   linear_scale_ = linear_min_;
   angular_scale_ = angular_min_;
+  
   send_flag_ = true;
 }
 
@@ -98,15 +99,17 @@ void KeyboardControl::parseKeyboard(){
 }
 
 void KeyboardControl::twistCallback(const ros::TimerEvent &){
+  std_msgs::Bool send_flag_msg;
   if (send_flag_){
     geometry_msgs::Twist twist;
     twist.linear.x = linear_state_ * linear_scale_;
     twist.angular.z = angular_state_ * angular_scale_;
     twist_pub_.publish(twist);
-    ROS_DEBUG_STREAM("linear: " << twist.linear.x << " angular: " << twist.angular.z);
+    ROS_DEBUG_STREAM( "linear: " << twist.linear.x << " angular: " << twist.angular.z);
   }
+  send_flag_msg.data = send_flag_;
+  send_flag_pub_.publish(send_flag_msg);
 }
-
 
 bool KeyboardControl::init(){
   const char path[] = "/dev/input/by-path";
@@ -141,13 +144,14 @@ bool KeyboardControl::init(){
 }
 
 void KeyboardControl::run(){
-  if (init()){
-    twist_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 10);
-    twist_pub_timer_ = nh_.createTimer(ros::Duration(1.0/rate_), &KeyboardControl::twistCallback, this);
-    boost::thread parse_thread(boost::bind(&KeyboardControl::parseKeyboard, this));
-    ros::spin();
+    if (init()){
+      twist_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 10);
+      send_flag_pub_ = nh_.advertise<std_msgs::Bool>("/send_flag", 10);
+      twist_pub_timer_ = nh_.createTimer(ros::Duration(1.0/rate_), &KeyboardControl::twistCallback, this);
+      boost::thread parse_thread(boost::bind(&KeyboardControl::parseKeyboard, this));
+      ros::spin();
+    }
   }
-}
 }
 
 int main(int argc, char *argv[]){

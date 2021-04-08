@@ -19,12 +19,13 @@ options = {
   map_builder = MAP_BUILDER,
   trajectory_builder = TRAJECTORY_BUILDER,
   map_frame = "map",
-  tracking_frame = "base_link",
+  tracking_frame = "rslidar",
   published_frame = "base_link",
   odom_frame = "odom",
   provide_odom_frame = true,
-  publish_frame_projected_to_2d = false,
-  use_odometry = true,
+  publish_frame_projected_to_2d = true,
+  -- use_pose_extrapolator = true,
+  use_odometry = false,
   use_nav_sat = false,
   use_landmarks = false,
   num_laser_scans = 0,
@@ -42,17 +43,34 @@ options = {
   landmarks_sampling_ratio = 1.,
 }
 
-TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 1
--- TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 160 
--- TRAJECTORY_BUILDER_3D.use_imu_data = true
--- TRAJECTORY_BUILDER_3D.voxel_filter_size = 0.1
-MAP_BUILDER.use_trajectory_builder_3d = true
-MAP_BUILDER.num_background_threads = 7
-POSE_GRAPH.optimization_problem.huber_scale = 5e2
-POSE_GRAPH.optimize_every_n_nodes = 320
-POSE_GRAPH.constraint_builder.sampling_ratio = 0.03
-POSE_GRAPH.optimization_problem.ceres_solver_options.max_num_iterations = 10
-POSE_GRAPH.constraint_builder.min_score = 0.62
-POSE_GRAPH.constraint_builder.global_localization_min_score = 0.66
+-- TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 1
+-- -- TRAJECTORY_BUILDER_3D.num_accumulated_range_data = 160 
+-- -- TRAJECTORY_BUILDER_3D.use_imu_data = true
+-- -- TRAJECTORY_BUILDER_3D.voxel_filter_size = 0.1
+-- MAP_BUILDER.use_trajectory_builder_3d = true
+-- MAP_BUILDER.num_background_threads = 7
+-- POSE_GRAPH.optimization_problem.huber_scale = 5e2
+-- POSE_GRAPH.optimize_every_n_nodes = 320
+-- POSE_GRAPH.constraint_builder.sampling_ratio = 0.03
+-- POSE_GRAPH.optimization_problem.ceres_solver_options.max_num_iterations = 10
+-- POSE_GRAPH.constraint_builder.min_score = 0.62
+-- POSE_GRAPH.constraint_builder.global_localization_min_score = 0.66
 
+MAP_BUILDER.use_trajectory_builder_2d = true
+TRAJECTORY_BUILDER_2D.use_imu_data = false
+-- TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
+TRAJECTORY_BUILDER_2D.voxel_filter_size = 0.05
+
+TRAJECTORY_BUILDER_2D.submaps.num_range_data = 5
+TRAJECTORY_BUILDER_2D.min_range = 0.4
+TRAJECTORY_BUILDER_2D.max_range = 20.
+TRAJECTORY_BUILDER_2D.missing_data_ray_length = 1.
+TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = false
+TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.linear_search_window = 0.1
+TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.translation_delta_cost_weight = 10.
+TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.rotation_delta_cost_weight = 1e-1
+ 
+POSE_GRAPH.optimization_problem.huber_scale = 1e2
+POSE_GRAPH.optimize_every_n_nodes = 20
+POSE_GRAPH.constraint_builder.min_score = 0.65
 return options

@@ -1,5 +1,5 @@
 // Step 1:  Include Library Headers:
-//发布imu的数据到IMU_data
+// 发布imu的数据到IMU_data
 #include "ros/ros.h"
 #include <sensor_msgs/Imu.h>
 #include <tf/transform_broadcaster.h>
@@ -25,7 +25,7 @@ int main(int argc, char **argv)
     ros::Publisher IMU_pub = nh.advertise<sensor_msgs::Imu>("imu",100);
     tf::TransformBroadcaster imu_broadcaster;
 
-    ros::Rate loop_rate(100);
+    ros::Rate loop_rate(40);
     ros::Time current_time,last_time;
     current_time = ros::Time::now();
     last_time = ros::Time::now();
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
         //first, we'll publish the transform over tf
         geometry_msgs::TransformStamped imu_trans;
         imu_trans.header.stamp = current_time;
-        imu_trans.header.frame_id = "imu";
+        imu_trans.header.frame_id = "imu_link";
         imu_trans.child_frame_id = "base_link";
         imu_trans.transform.translation.x = x;
         imu_trans.transform.translation.y = y;

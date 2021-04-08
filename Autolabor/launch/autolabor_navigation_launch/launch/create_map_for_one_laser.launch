@@ -21,10 +21,10 @@
 
         <param name="wheel_diameter" value="0.25" />
         <param name="model_param_cw" value="0.80" />
-	<param name="model_param_acw" value="0.80" />
+	    <param name="model_param_acw" value="0.80" />
         <param name="pid_rate" value="50.0" />
         <param name="maximum_encoding" value="32.0" />
-	<param name="publish_tf" value="false" />
+	    <param name="publish_tf" value="false" />
     </node>
 
     <!-- 雷达驱动 -->

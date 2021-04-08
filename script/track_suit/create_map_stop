@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /opt/autolabor/ros/catkin_ws/devel/setup.bash
+source $HOME/catkin_ws/devel/setup.bash
 roscd autolabor_navigation_launch/map/
 
 filename_suffix=`date "+%Y%m%d%H%M%S"`

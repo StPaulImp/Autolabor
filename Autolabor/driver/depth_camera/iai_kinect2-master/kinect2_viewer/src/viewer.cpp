@@ -32,6 +32,8 @@
 #include <pcl/visualization/cloud_viewer.h>
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc/types_c.h>  
 
 #include <ros/ros.h>
 #include <ros/spinner.h>
@@ -276,7 +278,7 @@ private:
         combine(color, depthDisp, combined);
         //combined = color;
 
-        cv::putText(combined, oss.str(), pos, font, sizeText, colorText, lineText, CV_AA);
+        cv::putText(combined, oss.str(), pos, font, sizeText, colorText, lineText, CV_8U);//CV_AA
         cv::imshow("Image Viewer", combined);
       }
 
