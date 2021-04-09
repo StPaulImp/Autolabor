@@ -51,7 +51,7 @@
       <material name="gray" />
     </visual>
   </link>
-  
+
   <link name="base_link" />
 
   <joint name="imu_link_joint" type="fixed">

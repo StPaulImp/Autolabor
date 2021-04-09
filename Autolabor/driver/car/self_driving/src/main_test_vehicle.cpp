@@ -4,6 +4,7 @@
 #include <boost/program_options.hpp>
 #include <thread>
 #include <boost/endian/arithmetic.hpp>
+#include <boost/thread.hpp>
 
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
@@ -55,11 +56,9 @@ namespace vehicle
 		int cur_left_, cur_right_, rev_left_, rev_right_, delta_left_, delta_right_;
 		float linear_gain_, angular_gain_;
 
-		ros::NodeHandle private_node;
-
-		ros::Subscriber cmd_sub;
+		ros::Subscriber auto_cmd_sub;
+		ros::Subscriber manual_cmd_sub;
 		ros::Subscriber flag_sub;
-
 		ros::Publisher odom_pub_;
 
 		virtual void doControl(yhs_wire_protocol::ControlData& cd) { 
@@ -227,20 +226,15 @@ namespace vehicle
 		};
 	public:
 		explicit ros_warpper(const std::string &ifname)
-		:YHS_DGT001M(ifname),private_node("~"),start_flag_(true){
-			//多线程thread
-			_rx = std::thread(&ros_warpper::_rxFunc, this);
-			_tx = std::thread(&ros_warpper::_txFunc, this);
-		};
-
-		void ros_warpper_init(/*ros::NodeHandle node*/){
-			//ROS连接
+		:YHS_DGT001M(ifname),start_flag_(true){
 			ros::NodeHandle node;
+			ros::NodeHandle private_node("~");
 
-			cmd_sub = node.subscribe<geometry_msgs::Twist>("/cmd_vel", 10, &ros_warpper::twist_callback, this); //控制命令反馈
-			flag_sub = node.subscribe<std_msgs::Bool>("/send_flag", 10, &ros_warpper::flag_callback, this); //发送标志反馈
-			odom_pub_ = node.advertise<nav_msgs::Odometry>("/wheel_odom", 10,this);
-
+			odom_pub_ = node.advertise<nav_msgs::Odometry>("/wheel_odom", 10);
+			auto_cmd_sub = node.subscribe<geometry_msgs::Twist>("/cmd_vel", 10, boost::bind(&ros_warpper::twist_callback, this,_1)); 
+			auto_cmd_sub = node.subscribe<geometry_msgs::Twist>("/cmd_vel_remote", 10, boost::bind(&ros_warpper::twist_callback, this,_1)); 
+			flag_sub = node.subscribe<std_msgs::Bool>("/send_flag", 10, boost::bind(&ros_warpper::flag_callback, this,_1)); 
+			
 			private_node.param<std::string>("port_name", port_name_, std::string("can0"));
 			private_node.param<std::string>("odom_frame", odom_frame_, std::string("odom"));
 			private_node.param<std::string>("base_frame", base_frame_, std::string("base_link"));
@@ -249,17 +243,18 @@ namespace vehicle
 			private_node.param<int>("control_rate", control_rate_, 10);
 			private_node.param<int>("sensor_rate", sensor_rate_, 10);
 			private_node.param<bool>("publish_tf", publish_tf_, true);
-			// private_node.param<float>("linear_gain", linear_gain_, 4.0f);
-			// private_node.param<float>("angular_gain", angular_gain_, 2.0f);
-		}
-		
+			//多线程thread
+			_rx = std::thread(&ros_warpper::_rxFunc, this);
+			_tx = std::thread(&ros_warpper::_txFunc, this);
+		};
+
         void twist_callback(const geometry_msgs::Twist::ConstPtr &msg) { 
             twist_mutex_.lock();
 			last_twist_time_ = ros::Time::now();
 			current_twist_ = *msg.get();
             twist_mutex_.unlock();
 	    }
-
+		
         void flag_callback(const std_msgs::Bool::ConstPtr &msg) {
             flag_mutex_.lock();
 			key_flag_ = *msg.get();
@@ -268,11 +263,8 @@ namespace vehicle
 
 		void keyFlag(std_msgs::Bool& value){key_flag_ = value;}
 		inline bool keyFlag(){return key_flag_.data;}
-
 		inline ros::Time lastTwistTime(){return last_twist_time_;}
-
 		inline geometry_msgs::Twist currentTwist(){return current_twist_;}
-
     };
 }
 
@@ -293,8 +285,10 @@ int main(int argc, char *argv[]) {
 	}
 
 	ros::init(argc, argv, "test_vehicle");
+	ros::start();
+
 	vehicle::ros_warpper yhs_dgt001m(std::string("can0"));
-	yhs_dgt001m.ros_warpper_init();
+	// yhs_dgt001m.ros_warpper_init();
 	yhs_dgt001m.start();
 
 	while(ros::ok()) {
@@ -312,7 +306,6 @@ int main(int argc, char *argv[]) {
 
 		// std::cout << "key_flag:" << key_flag << "linear:" << linear << "angular:" << angular << std::endl;
 		key_flag = true;
-
 		if (key_flag){
 			yhs_dgt001m.targetSpeed(yhs_dgt001m.currentTwist().linear.x);
 			yhs_dgt001m.targetAngleSpeed(yhs_dgt001m.currentTwist().angular.z);
@@ -325,7 +318,6 @@ int main(int argc, char *argv[]) {
 		}
         std::this_thread::sleep_for(50ms);
 	}
-
 	// yhs_dgt001m.targetSpeed(0);
 	// yhs_dgt001m.targetSteeringAngle(0);
 	return 0;

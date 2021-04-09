@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
+#include "absl/memory/memory.h"
 #include "cartographer/mapping/map_builder.h"
 #include "cartographer_ros/node.h"
 #include "cartographer_ros/node_options.h"
 #include "cartographer_ros/ros_log_sink.h"
 #include "gflags/gflags.h"
 #include "tf2_ros/transform_listener.h"
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
+#include "cartographer_ros/msg_conversion.h"
 
+DEFINE_bool(collect_metrics, false,
+            "Activates the collection of runtime metrics. If activated, the "
+            "metrics can be accessed via a ROS service.");
 DEFINE_string(configuration_directory, "",
               "First directory in which configuration files are searched, "
               "second is always the Cartographer installation to allow "
@@ -40,8 +46,27 @@ DEFINE_string(
     save_state_filename, "",
     "If non-empty, serialize state and write it to disk before shutting down.");
 
+cartographer_ros::Node* node_handle;
+cartographer_ros::TrajectoryOptions* trajectory_options_handle;
 namespace cartographer_ros {
 namespace {
+
+void Reset_InitPose_callback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg) {
+
+  // 关闭当前运行的Trajectories
+  node_handle->FinishAllTrajectories();
+
+  // 给轨迹设置起点 msg->pose.pose
+  // start trajectory with initial pose
+  *trajectory_options_handle->trajectory_builder_options.mutable_initial_trajectory_pose()->mutable_relative_pose()
+    = cartographer::transform::ToProto(cartographer_ros::ToRigid3d(msg->pose.pose));
+
+  // 重新开启Trajectory
+  if (FLAGS_start_trajectory_with_default_topics) 
+  {
+    node_handle->StartTrajectoryWithDefaultTopics(*trajectory_options_handle);
+  }
+}
 
 void Run() {
   constexpr double kTfBufferCacheTimeInSeconds = 10.;
@@ -53,9 +78,13 @@ void Run() {
       LoadOptions(FLAGS_configuration_directory, FLAGS_configuration_basename);
 
   auto map_builder =
-      cartographer::common::make_unique<cartographer::mapping::MapBuilder>(
-          node_options.map_builder_options);
-  Node node(node_options, std::move(map_builder), &tf_buffer);
+      cartographer::mapping::CreateMapBuilder(node_options.map_builder_options);
+  Node node(node_options, std::move(map_builder), &tf_buffer,
+            FLAGS_collect_metrics);
+
+  trajectory_options_handle = &(trajectory_options);
+  node_handle = &(node);
+
   if (!FLAGS_load_state_filename.empty()) {
     node.LoadState(FLAGS_load_state_filename, FLAGS_load_frozen_state);
   }
@@ -64,16 +93,18 @@ void Run() {
     node.StartTrajectoryWithDefaultTopics(trajectory_options);
   }
 
+  ::ros::Subscriber initPose_sub = node.node_handle()->subscribe("/initialpose", 1, &Reset_InitPose_callback);
+
   ::ros::spin();
 
   node.FinishAllTrajectories();
   node.RunFinalOptimization();
 
   if (!FLAGS_save_state_filename.empty()) {
-    node.SerializeState(FLAGS_save_state_filename);
+    node.SerializeState(FLAGS_save_state_filename,
+                        true /* include_unfinished_submaps */);
   }
 }
-
 }  // namespace
 }  // namespace cartographer_ros
 

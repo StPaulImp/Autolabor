@@ -14,7 +14,7 @@
 
     <!-- autolabor pro 1 驱动 -->
     <node name="test_vehicle" pkg="self_driving" type="test_vehicle" output="screen">
-        <!-- <remap from="/wheel_odom" to="/odom"/> -->
+        <remap from="/wheel_odom" to="/odom"/>
         <param name="port_name" value="can0" />
         <param name="odom_frame" value="odom" />
         <param name="base_frame" value="base_link" />

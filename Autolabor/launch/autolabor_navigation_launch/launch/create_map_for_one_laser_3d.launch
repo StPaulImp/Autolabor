@@ -25,6 +25,7 @@
         <param name="sensor_rate" value="10" />
 
 	    <param name="publish_tf" value="true" />
+        <remap from="wheel_odom" to="odom"/>
     </node>
 
     <!-- 雷达驱动 速腾16线-->
@@ -69,7 +70,7 @@
     </node>
     
     <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros" type="cartographer_occupancy_grid_node" args="-resolution 0.05" />
-    <node name="imu_sim" pkg="imu_sim" type="imu_sim_node"/>
+    <!-- <node name="imu_sim" pkg="imu_sim" type="imu_sim_node"/> -->
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
     <node name="rviz" pkg="rviz" type="rviz" required="true"
       args="-d $(find cartographer_ros)/configuration_files/demo_3d.rviz" />

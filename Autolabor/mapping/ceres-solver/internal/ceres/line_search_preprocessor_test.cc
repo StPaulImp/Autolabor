@@ -28,12 +28,13 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
+#include "ceres/line_search_preprocessor.h"
+
 #include <map>
 
 #include "ceres/problem_impl.h"
 #include "ceres/sized_cost_function.h"
 #include "ceres/solver.h"
-#include "ceres/line_search_preprocessor.h"
 #include "gtest/gtest.h"
 
 namespace ceres {
@@ -99,13 +100,14 @@ TEST(LineSearchPreprocessor, RemoveParameterBlocksSucceeds) {
   problem.AddParameterBlock(&x, 1);
   Solver::Options options;
   options.minimizer_type = LINE_SEARCH;
+
   LineSearchPreprocessor preprocessor;
   PreprocessedProblem pp;
   EXPECT_TRUE(preprocessor.Preprocess(options, &problem, &pp));
 }
 
-template<int kNumResiduals, int N1 = 0, int N2 = 0, int N3 = 0>
-class DummyCostFunction : public SizedCostFunction<kNumResiduals, N1, N2, N3> {
+template <int kNumResiduals, int... Ns>
+class DummyCostFunction : public SizedCostFunction<kNumResiduals, Ns...> {
  public:
   bool Evaluate(double const* const* parameters,
                 double* residuals,

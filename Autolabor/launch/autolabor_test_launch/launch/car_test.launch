@@ -28,7 +28,7 @@
     </node> -->
 
     <node name="test_vehicle" pkg="self_driving" type="test_vehicle" output="screen">
-        <!-- <remap from="/wheel_odom" to="/odom"/>
+        <remap from="/wheel_odom" to="/odom"/>
         <param name="port_name" value="can0" />
         <param name="odom_frame" value="odom" />
         <param name="base_frame" value="base_link" />
@@ -37,7 +37,7 @@
         <param name="control_rate" value="10" />
         <param name="sensor_rate" value="10" />
 
-	    <param name="publish_tf" value="true" /> -->
+	    <param name="publish_tf" value="true" />
     </node>
 
     <!-- 键盘遥控 -->

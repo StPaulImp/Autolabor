@@ -144,7 +144,7 @@ src/lidar.cpp include/lidar.h
 src/vehicle.cpp include/vehicle.h
 src/can.cpp include/can.h
 include/candata_yhs.h)
-target_link_libraries(test_lidar ${Boost_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(test_lidar ${Boost_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 if(WIN32)
 	add_subdirectory(win)

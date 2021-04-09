@@ -108,7 +108,7 @@ void KeyboardControl::twistCallback(const ros::TimerEvent &){
     ROS_DEBUG_STREAM( "linear: " << twist.linear.x << " angular: " << twist.angular.z);
   }
   send_flag_msg.data = send_flag_;
-  send_flag_pub_.publish(send_flag_msg);
+  // send_flag_pub_.publish(send_flag_msg);
 }
 
 bool KeyboardControl::init(){
@@ -127,6 +127,7 @@ bool KeyboardControl::init(){
       break;
     }
   }
+
   closedir(dev_dir);
 
   if (port_name_ != ""){

@@ -1,3 +1,17 @@
+# Copyright 2016 The Cartographer Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 Panels:
   - Class: rviz/Displays
     Help Height: 78
@@ -6,8 +20,8 @@ Panels:
       Expanded:
         - /Submaps1
         - /PointCloud21
-      Splitter Ratio: 0.6006709933280945
-    Tree Height: 411
+      Splitter Ratio: 0.600671
+    Tree Height: 821
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -16,7 +30,7 @@ Panels:
       - /2D Nav Goal1
       - /Publish Point1
     Name: Tool Properties
-    Splitter Ratio: 0.5886790156364441
+    Splitter Ratio: 0.588679
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -27,10 +41,6 @@ Panels:
     Name: Time
     SyncMode: 0
     SyncSource: PointCloud2
-Preferences:
-  PromptSaveOnExit: true
-Toolbars:
-  toolButtonStyle: 2
 Visualization Manager:
   Class: ""
   Displays:
@@ -40,7 +50,7 @@ Visualization Manager:
       Color: 160; 160; 164
       Enabled: true
       Line Style:
-        Line Width: 0.029999999329447746
+        Line Width: 0.03
         Value: Lines
       Name: Grid
       Normal Cell Count: 0
@@ -59,13 +69,15 @@ Visualization Manager:
         All Enabled: true
         base_link:
           Value: true
-        laser:
+        horizontal_laser_link:
+          Value: true
+        imu_link:
           Value: true
         map:
           Value: true
         odom:
           Value: true
-        real_map:
+        vertical_laser_link:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -76,9 +88,11 @@ Visualization Manager:
         map:
           odom:
             base_link:
-              laser:
+              horizontal_laser_link:
                 {}
-              real_map:
+              imu_link:
+                {}
+              vertical_laser_link:
                 {}
       Update Interval: 0
       Value: true
@@ -96,7 +110,17 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        laser:
+        horizontal_laser_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        vertical_laser_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -109,33 +133,8 @@ Visualization Manager:
       Visual Enabled: true
     - Class: Submaps
       Enabled: true
-      Fade-out distance: 1
-      High Resolution: true
-      Low Resolution: false
       Name: Submaps
       Submap query service: /submap_query
-      Submaps:
-        All: true
-        Trajectory 0:
-          0.180: true
-          1.180: true
-          10.180: true
-          11.180: true
-          12.180: true
-          13.180: true
-          14.180: true
-          15.180: true
-          16.120: true
-          17.30: true
-          2.180: true
-          3.180: true
-          4.180: true
-          5.180: true
-          6.180: true
-          7.180: true
-          8.180: true
-          9.180: true
-          Value: true
       Topic: /submap_list
       Tracking frame: base_link
       Unreliable: false
@@ -163,7 +162,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.05000000074505806
+      Size (m): 0.05
       Style: Flat Squares
       Topic: /scan_matched_points2
       Unreliable: false
@@ -175,7 +174,7 @@ Visualization Manager:
       Marker Topic: /trajectory_node_list
       Name: Trajectories
       Namespaces:
-        Trajectory 0: true
+        "": true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -183,21 +182,20 @@ Visualization Manager:
       Marker Topic: /landmark_poses_list
       Name: Landmark Poses
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /constraint_list
       Name: Constraints
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 100; 100; 100
-    Default Light: true
     Fixed Frame: map
     Frame Rate: 30
   Name: root
@@ -209,10 +207,7 @@ Visualization Manager:
     - Class: rviz/FocusCamera
     - Class: rviz/Measure
     - Class: rviz/SetInitialPose
-      Theta std deviation: 0.2617993950843811
       Topic: /initialpose
-      X std deviation: 0.5
-      Y std deviation: 0.5
     - Class: rviz/SetGoal
       Topic: /move_base_simple/goal
     - Class: rviz/PublishPoint
@@ -221,29 +216,28 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -1.625
+      Angle: 0
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
-        Stereo Eye Separation: 0.05999999865889549
+        Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Invert Z Axis: false
       Name: Current View
-      Near Clip Distance: 0.009999999776482582
-      Scale: 63.91856002807617
+      Near Clip Distance: 0.01
+      Scale: 10
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: -0.26616159081459045
-      Y: -1.1835027933120728
+      X: 0
+      Y: 0
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 711
+  Height: 1123
   Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001c500000227fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003e00000227000000ca00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000227fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003e00000227000000a600fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000053d0000003efc0100000002fb0000000800540069006d006501000000000000053d0000026200fffffffb0000000800540069006d006501000000000000045000000000000000000000025d0000022700000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001c5000003c0fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730100000041000003c0000000dd00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000003c0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a005600690065007700730100000041000003c0000000b000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000077e0000003efc0100000002fb0000000800540069006d006501000000000000077e000002f600fffffffb0000000800540069006d006501000000000000045000000000000000000000049e000003c000000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -252,6 +246,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1341
-  X: 175
-  Y: 428
+  Width: 1918
+  X: 0
+  Y: 24

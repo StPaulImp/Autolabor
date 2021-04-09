@@ -28,8 +28,10 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
-#include <iostream>  // NO LINT
 #include "ceres/callbacks.h"
+
+#include <iostream>  // NO LINT
+
 #include "ceres/program.h"
 #include "ceres/stringprintf.h"
 #include "glog/logging.h"
@@ -47,17 +49,36 @@ StateUpdatingCallback::~StateUpdatingCallback() {}
 
 CallbackReturnType StateUpdatingCallback::operator()(
     const IterationSummary& summary) {
+  program_->StateVectorToParameterBlocks(parameters_);
+  program_->CopyParameterBlockStateToUserState();
+  return SOLVER_CONTINUE;
+}
+
+GradientProblemSolverStateUpdatingCallback::
+    GradientProblemSolverStateUpdatingCallback(
+        int num_parameters,
+        const double* internal_parameters,
+        double* user_parameters)
+    : num_parameters_(num_parameters),
+      internal_parameters_(internal_parameters),
+      user_parameters_(user_parameters) {}
+
+GradientProblemSolverStateUpdatingCallback::
+    ~GradientProblemSolverStateUpdatingCallback() {}
+
+CallbackReturnType GradientProblemSolverStateUpdatingCallback::operator()(
+    const IterationSummary& summary) {
   if (summary.step_is_successful) {
-    program_->StateVectorToParameterBlocks(parameters_);
-    program_->CopyParameterBlockStateToUserState();
+    std::copy(internal_parameters_,
+              internal_parameters_ + num_parameters_,
+              user_parameters_);
   }
   return SOLVER_CONTINUE;
 }
 
 LoggingCallback::LoggingCallback(const MinimizerType minimizer_type,
                                  const bool log_to_stdout)
-    : minimizer_type(minimizer_type),
-      log_to_stdout_(log_to_stdout) {}
+    : minimizer_type(minimizer_type), log_to_stdout_(log_to_stdout) {}
 
 LoggingCallback::~LoggingCallback() {}
 
@@ -65,36 +86,36 @@ CallbackReturnType LoggingCallback::operator()(
     const IterationSummary& summary) {
   string output;
   if (minimizer_type == LINE_SEARCH) {
-    const char* kReportRowFormat =
-        "% 4d: f:% 8e d:% 3.2e g:% 3.2e h:% 3.2e "
-        "s:% 3.2e e:% 3d it:% 3.2e tt:% 3.2e";
-    output = StringPrintf(kReportRowFormat,
-                          summary.iteration,
-                          summary.cost,
-                          summary.cost_change,
-                          summary.gradient_max_norm,
-                          summary.step_norm,
-                          summary.step_size,
-                          summary.line_search_function_evaluations,
-                          summary.iteration_time_in_seconds,
-                          summary.cumulative_time_in_seconds);
+    output = StringPrintf(
+        "% 4d: f:% 8e d:% 3.2e g:% 3.2e h:% 3.2e s:% 3.2e e:% 3d it:% 3.2e "
+        "tt:% 3.2e",
+        summary.iteration,
+        summary.cost,
+        summary.cost_change,
+        summary.gradient_max_norm,
+        summary.step_norm,
+        summary.step_size,
+        summary.line_search_function_evaluations,
+        summary.iteration_time_in_seconds,
+        summary.cumulative_time_in_seconds);
   } else if (minimizer_type == TRUST_REGION) {
+    // clang-format off
     if (summary.iteration == 0) {
       output = "iter      cost      cost_change  |gradient|   |step|    tr_ratio  tr_radius  ls_iter  iter_time  total_time\n";  // NOLINT
     }
-    const char* kReportRowFormat =
-        "% 4d % 8e   % 3.2e   % 3.2e  % 3.2e  % 3.2e % 3.2e     % 4d   % 3.2e   % 3.2e";  // NOLINT
-    output += StringPrintf(kReportRowFormat,
-                           summary.iteration,
-                           summary.cost,
-                           summary.cost_change,
-                           summary.gradient_max_norm,
-                           summary.step_norm,
-                           summary.relative_decrease,
-                           summary.trust_region_radius,
-                           summary.linear_solver_iterations,
-                           summary.iteration_time_in_seconds,
-                           summary.cumulative_time_in_seconds);
+    output += StringPrintf(
+        "% 4d % 8e   % 3.2e   % 3.2e  % 3.2e  % 3.2e % 3.2e     % 4d   % 3.2e   % 3.2e",  // NOLINT
+        // clang-format on
+        summary.iteration,
+        summary.cost,
+        summary.cost_change,
+        summary.gradient_max_norm,
+        summary.step_norm,
+        summary.relative_decrease,
+        summary.trust_region_radius,
+        summary.linear_solver_iterations,
+        summary.iteration_time_in_seconds,
+        summary.cumulative_time_in_seconds);
   } else {
     LOG(FATAL) << "Unknown minimizer type.";
   }

@@ -24,7 +24,7 @@ options = {
   odom_frame = "odom",
   provide_odom_frame = true,
   publish_frame_projected_to_2d = true,
-  -- use_pose_extrapolator = true,
+  use_pose_extrapolator = true,
   use_odometry = false,
   use_nav_sat = false,
   use_landmarks = false,
@@ -58,12 +58,12 @@ options = {
 
 MAP_BUILDER.use_trajectory_builder_2d = true
 TRAJECTORY_BUILDER_2D.use_imu_data = false
--- TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
+TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
 TRAJECTORY_BUILDER_2D.voxel_filter_size = 0.05
 
 TRAJECTORY_BUILDER_2D.submaps.num_range_data = 5
 TRAJECTORY_BUILDER_2D.min_range = 0.4
-TRAJECTORY_BUILDER_2D.max_range = 20.
+TRAJECTORY_BUILDER_2D.max_range = 10.
 TRAJECTORY_BUILDER_2D.missing_data_ray_length = 1.
 TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = false
 TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.linear_search_window = 0.1

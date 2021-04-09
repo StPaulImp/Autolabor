@@ -20,8 +20,8 @@
 
 #include "Eigen/Core"
 #include "Eigen/Geometry"
+#include "absl/synchronization/mutex.h"
 #include "cairo/cairo.h"
-#include "cartographer/common/mutex.h"
 #include "cartographer/common/port.h"
 #include "cartographer/io/image.h"
 #include "cartographer/io/submap_painter.h"
@@ -40,6 +40,12 @@
 DEFINE_double(resolution, 0.05,
               "Resolution of a grid cell in the published occupancy grid.");
 DEFINE_double(publish_period_sec, 1.0, "OccupancyGrid publishing period.");
+DEFINE_bool(include_frozen_submaps, true,
+            "Include frozen submaps in the occupancy grid.");
+DEFINE_bool(include_unfrozen_submaps, true,
+            "Include unfrozen submaps in the occupancy grid.");
+DEFINE_string(occupancy_grid_topic, cartographer_ros::kOccupancyGridTopic,
+              "Name of the topic on which the occupancy grid is published.");
 
 namespace cartographer_ros {
 namespace {
@@ -59,14 +65,11 @@ class Node {
  private:
   void HandleSubmapList(const cartographer_ros_msgs::SubmapList::ConstPtr& msg);
   void DrawAndPublish(const ::ros::WallTimerEvent& timer_event);
-  void PublishOccupancyGrid(const std::string& frame_id, const ros::Time& time,
-                            const Eigen::Array2f& origin,
-                            cairo_surface_t* surface);
 
   ::ros::NodeHandle node_handle_;
   const double resolution_;
 
-  ::cartographer::common::Mutex mutex_;
+  absl::Mutex mutex_;
   ::ros::ServiceClient client_ GUARDED_BY(mutex_);
   ::ros::Subscriber submap_list_subscriber_ GUARDED_BY(mutex_);
   ::ros::Publisher occupancy_grid_publisher_ GUARDED_BY(mutex_);
@@ -89,7 +92,7 @@ Node::Node(const double resolution, const double publish_period_sec)
               }))),
       occupancy_grid_publisher_(
           node_handle_.advertise<::nav_msgs::OccupancyGrid>(
-              kOccupancyGridTopic, kLatestOnlyPublisherQueueSize,
+              FLAGS_occupancy_grid_topic, kLatestOnlyPublisherQueueSize,
               true /* latched */)),
       occupancy_grid_publisher_timer_(
           node_handle_.createWallTimer(::ros::WallDuration(publish_period_sec),
@@ -97,7 +100,7 @@ Node::Node(const double resolution, const double publish_period_sec)
 
 void Node::HandleSubmapList(
     const cartographer_ros_msgs::SubmapList::ConstPtr& msg) {
-  ::cartographer::common::MutexLocker locker(&mutex_);
+  absl::MutexLock locker(&mutex_);
 
   // We do not do any work if nobody listens.
   if (occupancy_grid_publisher_.getNumSubscribers() == 0) {
@@ -113,6 +116,10 @@ void Node::HandleSubmapList(
   for (const auto& submap_msg : msg->submap) {
     const SubmapId id{submap_msg.trajectory_id, submap_msg.submap_index};
     submap_ids_to_delete.erase(id);
+    if ((submap_msg.is_frozen && !FLAGS_include_frozen_submaps) ||
+        (!submap_msg.is_frozen && !FLAGS_include_unfrozen_submaps)) {
+      continue;
+    }
     SubmapSlice& submap_slice = submap_slices_[id];
     submap_slice.pose = ToRigid3d(submap_msg.pose);
     submap_slice.metadata_version = submap_msg.submap_version;
@@ -154,11 +161,10 @@ void Node::HandleSubmapList(
 }
 
 void Node::DrawAndPublish(const ::ros::WallTimerEvent& unused_timer_event) {
+  absl::MutexLock locker(&mutex_);
   if (submap_slices_.empty() || last_frame_id_.empty()) {
     return;
   }
-
-  ::cartographer::common::MutexLocker locker(&mutex_);
   auto painted_slices = PaintSubmapSlices(submap_slices_, resolution_);
   std::unique_ptr<nav_msgs::OccupancyGrid> msg_ptr = CreateOccupancyGridMsg(
       painted_slices, resolution_, last_frame_id_, last_timestamp_);
@@ -171,6 +177,9 @@ void Node::DrawAndPublish(const ::ros::WallTimerEvent& unused_timer_event) {
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
+
+  CHECK(FLAGS_include_frozen_submaps || FLAGS_include_unfrozen_submaps)
+      << "Ignoring both frozen and unfrozen submaps makes no sense.";
 
   ::ros::init(argc, argv, "cartographer_occupancy_grid_node");
   ::ros::start();

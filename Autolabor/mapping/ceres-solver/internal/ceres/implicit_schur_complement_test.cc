@@ -31,12 +31,14 @@
 #include "ceres/implicit_schur_complement.h"
 
 #include <cstddef>
+#include <memory>
+
 #include "Eigen/Dense"
 #include "ceres/block_random_access_dense_matrix.h"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/casts.h"
+#include "ceres/context_impl.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_least_squares_problems.h"
 #include "ceres/linear_solver.h"
 #include "ceres/schur_eliminator.h"
@@ -53,12 +55,12 @@ using testing::AssertionResult;
 const double kEpsilon = 1e-14;
 
 class ImplicitSchurComplementTest : public ::testing::Test {
- protected :
-  virtual void SetUp() {
-    scoped_ptr<LinearLeastSquaresProblem> problem(
+ protected:
+  void SetUp() final {
+    std::unique_ptr<LinearLeastSquaresProblem> problem(
         CreateLinearLeastSquaresProblemFromId(2));
 
-    CHECK_NOTNULL(problem.get());
+    CHECK(problem != nullptr);
     A_.reset(down_cast<BlockSparseMatrix*>(problem->A.release()));
     b_.reset(problem->b.release());
     D_.reset(problem->D.release());
@@ -85,17 +87,20 @@ class ImplicitSchurComplementTest : public ::testing::Test {
     LinearSolver::Options options;
     options.elimination_groups.push_back(num_eliminate_blocks_);
     options.type = DENSE_SCHUR;
+    ContextImpl context;
+    options.context = &context;
 
-    scoped_ptr<SchurEliminatorBase> eliminator(
+    std::unique_ptr<SchurEliminatorBase> eliminator(
         SchurEliminatorBase::Create(options));
-    CHECK_NOTNULL(eliminator.get());
+    CHECK(eliminator != nullptr);
     const bool kFullRankETE = true;
     eliminator->Init(num_eliminate_blocks_, kFullRankETE, bs);
 
     lhs->resize(num_schur_rows, num_schur_rows);
     rhs->resize(num_schur_rows);
 
-    eliminator->Eliminate(A_.get(), b_.get(), D, &blhs, rhs->data());
+    eliminator->Eliminate(
+        BlockSparseMatrixData(*A_), b_.get(), D, &blhs, rhs->data());
 
     MatrixRef lhs_ref(blhs.mutable_values(), num_schur_rows, num_schur_rows);
 
@@ -111,8 +116,11 @@ class ImplicitSchurComplementTest : public ::testing::Test {
     VectorRef schur_solution(solution->data() + num_cols_ - num_schur_rows,
                              num_schur_rows);
     schur_solution = lhs->selfadjointView<Eigen::Upper>().llt().solve(*rhs);
-    eliminator->BackSubstitute(A_.get(), b_.get(), D,
-                               schur_solution.data(), solution->data());
+    eliminator->BackSubstitute(BlockSparseMatrixData(*A_),
+                               b_.get(),
+                               D,
+                               schur_solution.data(),
+                               solution->data());
   }
 
   AssertionResult TestImplicitSchurComplement(double* D) {
@@ -124,6 +132,8 @@ class ImplicitSchurComplementTest : public ::testing::Test {
     LinearSolver::Options options;
     options.elimination_groups.push_back(num_eliminate_blocks_);
     options.preconditioner_type = JACOBI;
+    ContextImpl context;
+    options.context = &context;
     ImplicitSchurComplement isc(options);
     isc.Init(*A_, D, b_.get());
 
@@ -144,18 +154,18 @@ class ImplicitSchurComplementTest : public ::testing::Test {
       // the explicit schur complement.
       if ((y - z).norm() > kEpsilon) {
         return testing::AssertionFailure()
-            << "Explicit and Implicit SchurComplements differ in "
-            << "column " << i << ". explicit: " << y.transpose()
-            << " implicit: " << z.transpose();
+               << "Explicit and Implicit SchurComplements differ in "
+               << "column " << i << ". explicit: " << y.transpose()
+               << " implicit: " << z.transpose();
       }
     }
 
     // Compare the rhs of the reduced linear system
     if ((isc.rhs() - rhs).norm() > kEpsilon) {
       return testing::AssertionFailure()
-            << "Explicit and Implicit SchurComplements differ in "
-            << "rhs. explicit: " << rhs.transpose()
-            << " implicit: " << isc.rhs().transpose();
+             << "Explicit and Implicit SchurComplements differ in "
+             << "rhs. explicit: " << rhs.transpose()
+             << " implicit: " << isc.rhs().transpose();
     }
 
     // Reference solution to the f_block.
@@ -168,9 +178,9 @@ class ImplicitSchurComplementTest : public ::testing::Test {
     isc.BackSubstitute(reference_f_sol.data(), sol.data());
     if ((sol - reference_solution).norm() > kEpsilon) {
       return testing::AssertionFailure()
-          << "Explicit and Implicit SchurComplements solutions differ. "
-          << "explicit: " << reference_solution.transpose()
-          << " implicit: " << sol.transpose();
+             << "Explicit and Implicit SchurComplements solutions differ. "
+             << "explicit: " << reference_solution.transpose()
+             << " implicit: " << sol.transpose();
     }
 
     return testing::AssertionSuccess();
@@ -180,9 +190,9 @@ class ImplicitSchurComplementTest : public ::testing::Test {
   int num_cols_;
   int num_eliminate_blocks_;
 
-  scoped_ptr<BlockSparseMatrix> A_;
-  scoped_array<double> b_;
-  scoped_array<double> D_;
+  std::unique_ptr<BlockSparseMatrix> A_;
+  std::unique_ptr<double[]> b_;
+  std::unique_ptr<double[]> D_;
 };
 
 // Verify that the Schur Complement matrix implied by the
