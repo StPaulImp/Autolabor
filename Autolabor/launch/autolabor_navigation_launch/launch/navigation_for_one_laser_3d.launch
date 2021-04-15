@@ -49,6 +49,31 @@
         <param name="intensity_mode" value="1"/>
     </node>
     
+    <!-- run pointcloud_to_laserscan node -->
+    <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+        <remap from="cloud_in" to="/rslidar_points"/>
+        <rosparam>
+            # target_frame: rslidar # Leave disabled to output scan in pointcloud frame
+            transform_tolerance: 0.01
+            min_height: -0.5
+            max_height: 1.2
+ 
+            angle_min: -3.1415926 # -M_PI
+            angle_max: 3.1415926 # M_PI
+            angle_increment: 0.003 # 0.17degree
+            scan_time: 0.4
+            range_min: 0.1
+            range_max: 100
+            use_inf: true
+            inf_epsilon: 1.0
+ 
+            # Concurrency level, affects number of pointclouds queued for processing and number of threads used
+            # 0 : Detect number of cores
+            # 1 : Single threaded
+            # 2->inf : Parallelism level
+            concurrency_level: 1
+        </rosparam>
+    </node>
     <!-- <node pkg="rslidar_sdk" name="rslidar_sdk_node" type="rslidar_sdk_node" output="screen">
     </node> -->
     <!-- 键盘遥控 -->
@@ -60,6 +85,7 @@
         <param name="angular_min" value="0.314" />
         <param name="angular_max" value="1.57" />
         <param name="angular_step" value="0.314" />
+        <remap from="cmd_vel" to="cmd_vel_remote"/>
     </node>
 
     <!-- 定位模块 -->
@@ -67,9 +93,9 @@
       type="cartographer_node" args="
           -configuration_directory $(find cartographer_ros)/configuration_files
           -configuration_basename one_laser_navigation_3d.lua
-          -load_state_filename $(find autolabor_navigation_launch)/map/3d_map.pbstream"
+          -load_state_filename $(find autolabor_navigation_launch)/map/map.pbstream"
       output="screen">
-      <remap from="points2" to="rslidar_points" />
+      <!-- <remap from="points2" to="rslidar_points" /> -->
     </node>
 
     <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros" type="cartographer_occupancy_grid_node" args="-resolution 0.05" />
@@ -84,7 +110,7 @@
     </node>
 
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
-    <node name="imu_sim" pkg="imu_sim" type="imu_sim_node"/>
+    <!-- <node name="imu_sim" pkg="imu_sim" type="imu_sim_node"/> -->
     <node name="rviz" pkg="rviz" type="rviz" required="true"
       args="-d $(find cartographer_ros)/configuration_files/demo_3d.rviz" />
 </launch>

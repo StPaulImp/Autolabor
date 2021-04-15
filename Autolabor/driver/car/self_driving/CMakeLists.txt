@@ -54,10 +54,6 @@ catkin_package(
 ###########
 ## Build ##
 ###########
-include_directories(
-    include
-    ${catkin_INCLUDE_DIRS}
-)
 # find_package(CGAL REQUIRED)
 # include( ${CGAL_USE_FILE} )
 
@@ -66,6 +62,7 @@ include_directories( ${EIGEN3_INCLUDE_DIRS} )
 
 find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
+
 find_package(PCL REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
@@ -119,9 +116,27 @@ link_directories(${Boost_LIBRARY_DIRS})
 # 	${catkin_LIBRARIES}
 # 	# ${PCL_LIBRARIES}
 # 	)
+include_directories(
+    include
+    ${catkin_INCLUDE_DIRS}
+)
 
 add_executable(test_vehicle src/main_test_vehicle.cpp include/vehicle.h src/vehicle.cpp include/net.h src/net.cpp include/picojson.h include/can.h src/can.cpp include/candata_yhs.h)
 target_link_libraries(test_vehicle ${Boost_LIBRARIES} ${catkin_LIBRARIES})
+
+## Mark executables and/or libraries for installation
+# install(TARGETS test_vehicle
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
+
+# ## Mark cpp header files for installation
+# install(DIRECTORY include
+#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+# #   FILES_MATCHING PATTERN "*.h"
+# #   PATTERN ".svn" EXCLUDE
+# )
 
 add_executable(path_recorder src/main_path_recorder.cpp include/rtk.h src/rtk.cpp)
 target_link_libraries(path_recorder ${Boost_LIBRARIES} ${catkin_LIBRARIES})

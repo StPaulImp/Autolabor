@@ -16,8 +16,8 @@
 #include <std_msgs/Int32.h>
 #include <std_msgs/Float32.h>
 
-#include "../include/net.h"
-#include "../include/vehicle.h"
+#include "net.h"
+#include "vehicle.h"
 
 using namespace boost;
 using namespace std;
@@ -28,9 +28,10 @@ namespace vehicle
 	class ros_warpper:public YHS_DGT001M
 	{
     private:
-        geometry_msgs::Twist current_twist_;
+        geometry_msgs::Twist current_twist_, current_twist_remote_;
         std_msgs::Bool key_flag_;
         boost::mutex twist_mutex_;
+		boost::mutex twist_mutex_remote;
 		boost::mutex flag_mutex_;
 		ros::Time last_twist_time_;
     	nav_msgs::Odometry odom_;
@@ -41,13 +42,10 @@ namespace vehicle
 		tf2_ros::TransformBroadcaster br_;
 		geometry_msgs::TransformStamped transformStamped_;
 
-		
 		ros::Time last_time_, now_;
 		bool publish_tf_;
-
 		std::string port_name_;
 		int baud_rate_;
-
 		std::string odom_frame_, base_frame_;
 
 		bool start_flag_;
@@ -56,10 +54,10 @@ namespace vehicle
 		int cur_left_, cur_right_, rev_left_, rev_right_, delta_left_, delta_right_;
 		float linear_gain_, angular_gain_;
 
-		ros::Subscriber auto_cmd_sub;
-		ros::Subscriber manual_cmd_sub;
+		ros::Subscriber cmd_sub;
+		ros::Subscriber remote_cmd_sub;
 		ros::Subscriber flag_sub;
-		ros::Publisher odom_pub_;
+		ros::Publisher odom_pub_,vel_feedback_pub_;
 
 		virtual void doControl(yhs_wire_protocol::ControlData& cd) { 
 			// std::cout << "doControl-roswarrper" << std::endl;
@@ -72,7 +70,7 @@ namespace vehicle
             float ts = _targetSpeed;
             ts = std::clamp(ts, pvs - 0.05f, pvs + 0.05f);
             ts = std::clamp(ts, -0.2f, 0.2f);
-			cd.targetSpeed(_targetSpeed);
+			cd.targetSpeed(-1.0f * _targetSpeed);
 			_previousVehicleSpeed = ts;
 			// std::cout <<  "_targetAngleSpeed:" << _targetAngleSpeed << std::endl;
 			float pas = _vehicleAngleSpeed * (0.5);
@@ -89,7 +87,7 @@ namespace vehicle
 			int counter = 0;
 			yhs_wire_protocol::ControlData cd;
 			while (ros::ok()) {
-				ros::spinOnce();
+				// ros::spinOnce();
 				doControl(cd);
 				cd.rollingCounter(counter++);  
 				counter &= 0xf;
@@ -119,26 +117,32 @@ namespace vehicle
 				// }
 				// std::cout << std::endl;
 				_controlSocket.send(boost::asio::buffer(&frame, sizeof(frame)));
-				std::this_thread::sleep_for(50ms);
+				std::this_thread::sleep_for(100ms);
 			}
 		};
 
 		virtual void _rxFunc(){
 			std::cout << "_rxFunc-roswarrper" << std::endl;
 			while (ros::ok()) {
-				ros::spinOnce();
+				// ros::spinOnce();
 				can_frame frame = {0};
 				_controlSocket.receive(boost::asio::buffer(&frame, sizeof(frame)));
 				if ((CAN_EFF_FLAG|0x18C4D1EF) ==  frame.can_id) {
 					yhs_wire_protocol::ctrl_fb gearFeedBack(frame.data);
 					_vcuCurGearPos = static_cast<CurrentGearPositon>(gearFeedBack.Auto_Gear_Statu());
-					// std::cout << "_vcuCurGearPos" << (int)gearFeedBack.Auto_Gear_Statu() << std::endl;
+					// std::cout << "_vcuCurGearPos 1:" << (int)gearFeedBack.Auto_Gear_Statu() << std::endl;
 					yhs_wire_protocol::ctrl_fb driveFeedBack(frame.data);
-					_vehicleSpeed = driveFeedBack.Auto_Drive_Speed() * 0.001;
-					// std::cout << "_vehicleSpeed" << _vehicleSpeed << std::endl;
+					_vehicleSpeed = driveFeedBack.Auto_Drive_Speed() * (-0.001);
+					if (fabs(_vehicleSpeed) < 0.01){
+						_vehicleSpeed = 0.0f;
+					}
+					// std::cout << "_vehicleSpeed 1:" << _vehicleSpeed << std::endl;
 					yhs_wire_protocol::ctrl_fb driveangleFeedBack(frame.data);
-					_vehicleAngleSpeed = driveangleFeedBack.Auto_Drive_AngleSpeed() * 0.01;
-					//std::cout << "_vehicleAngleSpeed" << _vehicleAngleSpeed << std::endl;
+					_vehicleAngleSpeed = driveangleFeedBack.Auto_Drive_AngleSpeed() * (0.01) / 180 * M_PI;
+					if (fabs(_vehicleAngleSpeed) < 0.017){
+						_vehicleAngleSpeed = 0.0f;
+					}
+					// std::cout << "_vehicleAngleSpeed 1:" << _vehicleAngleSpeed << std::endl;
 				}else if((CAN_EFF_FLAG|0x18C4D7EF) == frame.can_id) {
 					yhs_wire_protocol::l_wheel_fb leftspeedFeedBack(frame.data);
 					_curLeftSpeed = static_cast<float>(leftspeedFeedBack.Auto_WheelSpd_LeftBack());
@@ -161,15 +165,24 @@ namespace vehicle
 					yhs_wire_protocol::io_fb RemoteControlFeedBack(frame.data);
 					bool rcb = RemoteControlFeedBack.RemoteControl_Back();
 				}
-
+				now_ = ros::Time().now();
 				delta_time_ = (now_ - last_time_).toSec();
-				if (delta_time_ >= (0.5 / control_rate_)) {
+				// std::cout << "delta_time_:" << delta_time_ << std::endl;
 
+				if (delta_time_ >= (1.0 / control_rate_)) {
+					// std::cout << "delta_time_:" << delta_time_ << std::endl;
 					double delta_theta = _vehicleAngleSpeed * delta_time_;
 					double v_theta = _vehicleAngleSpeed;
 				
 					double delta_dis = _vehicleSpeed * delta_time_;
 					double v_dis = _vehicleSpeed;
+
+					geometry_msgs::Twist feedback_twist_;
+					feedback_twist_.linear.x = _vehicleSpeed;
+					feedback_twist_.angular.z = _vehicleAngleSpeed;
+					// std::cout << "feedback_twist_.linear.x:" << _vehicleSpeed << std::endl;
+					// std::cout << "feedback_twist_.angular.z:" << _vehicleAngleSpeed << std::endl;
+					vel_feedback_pub_.publish(feedback_twist_);
 
 					double delta_x, delta_y;
 					if (delta_theta == 0) {
@@ -220,8 +233,11 @@ namespace vehicle
 					odom_pub_.publish(odom_);
 
 					ROS_DEBUG_STREAM("accumulation_x: " << accumulation_x_ << "; accumulation_y: " << accumulation_y_ << "; accumulation_th: " << accumulation_th_);
+					last_time_ = now_;
 				}
-				last_time_ = now_;
+				// else{
+				// 	std::this_thread::sleep_for(1ms);
+				// }
 			}
 		};
 	public:
@@ -230,10 +246,11 @@ namespace vehicle
 			ros::NodeHandle node;
 			ros::NodeHandle private_node("~");
 
-			odom_pub_ = node.advertise<nav_msgs::Odometry>("/wheel_odom", 10);
-			auto_cmd_sub = node.subscribe<geometry_msgs::Twist>("/cmd_vel", 10, boost::bind(&ros_warpper::twist_callback, this,_1)); 
-			auto_cmd_sub = node.subscribe<geometry_msgs::Twist>("/cmd_vel_remote", 10, boost::bind(&ros_warpper::twist_callback, this,_1)); 
-			flag_sub = node.subscribe<std_msgs::Bool>("/send_flag", 10, boost::bind(&ros_warpper::flag_callback, this,_1)); 
+			odom_pub_ = node.advertise<nav_msgs::Odometry>("/wheel_odom", 10, true);
+			vel_feedback_pub_ = node.advertise<geometry_msgs::Twist>("/feedback_vel", 10, true);
+			cmd_sub = node.subscribe<geometry_msgs::Twist>("/cmd_vel", 10, boost::bind(&ros_warpper::twist_callback, this,_1));
+			remote_cmd_sub = node.subscribe<geometry_msgs::Twist>("/cmd_vel_remote", 10, boost::bind(&ros_warpper::twist_callback_remote, this,_1));
+			flag_sub = node.subscribe<std_msgs::Bool>("/send_flag", 10, boost::bind(&ros_warpper::flag_callback, this,_1));
 			
 			private_node.param<std::string>("port_name", port_name_, std::string("can0"));
 			private_node.param<std::string>("odom_frame", odom_frame_, std::string("odom"));
@@ -243,18 +260,27 @@ namespace vehicle
 			private_node.param<int>("control_rate", control_rate_, 10);
 			private_node.param<int>("sensor_rate", sensor_rate_, 10);
 			private_node.param<bool>("publish_tf", publish_tf_, true);
+
 			//多线程thread
-			_rx = std::thread(&ros_warpper::_rxFunc, this);
-			_tx = std::thread(&ros_warpper::_txFunc, this);
+			_rx = std::thread(&YHS_DGT001M::_rxFunc,this);
+			_tx = std::thread(&YHS_DGT001M::_txFunc,this);
+			start();
 		};
 
-        void twist_callback(const geometry_msgs::Twist::ConstPtr &msg) { 
-            twist_mutex_.lock();
+		void twist_callback (const geometry_msgs::Twist::ConstPtr &msg) { 
+			twist_mutex_.lock();
 			last_twist_time_ = ros::Time::now();
 			current_twist_ = *msg.get();
             twist_mutex_.unlock();
+		}
+
+        void twist_callback_remote(const geometry_msgs::Twist::ConstPtr &msg) { 
+            twist_mutex_remote.lock();
+			last_twist_time_ = ros::Time::now();
+			current_twist_remote_ = *msg.get();
+            twist_mutex_remote.unlock();
 	    }
-		
+
         void flag_callback(const std_msgs::Bool::ConstPtr &msg) {
             flag_mutex_.lock();
 			key_flag_ = *msg.get();
@@ -265,6 +291,7 @@ namespace vehicle
 		inline bool keyFlag(){return key_flag_.data;}
 		inline ros::Time lastTwistTime(){return last_twist_time_;}
 		inline geometry_msgs::Twist currentTwist(){return current_twist_;}
+		inline geometry_msgs::Twist currentTwistRemote(){return current_twist_remote_;}
     };
 }
 
@@ -289,7 +316,7 @@ int main(int argc, char *argv[]) {
 
 	vehicle::ros_warpper yhs_dgt001m(std::string("can0"));
 	// yhs_dgt001m.ros_warpper_init();
-	yhs_dgt001m.start();
+	
 
 	while(ros::ok()) {
 		ros::spinOnce();
@@ -297,18 +324,18 @@ int main(int argc, char *argv[]) {
 		double linear_speed, angular_speed;
     
 		//		if ((ros::Time::now() - yhs_dgt001m.lastTwistTime()).toSec() <= 1.0) {
-		//			linear_speed = yhs_dgt001m.currentTwist().linear.x;
-		//			angular_speed = yhs_dgt001m.currentTwist().angular.z;
+		//			linear_speed = yhs_dgt001m.currentTwistRemote().linear.x;
+		//			angular_speed = yhs_dgt001m.currentTwistRemote().angular.z;
 		//		} else {
 		//			linear_speed = 0;
 		//			angular_speed = 0;
 		//		}
 
 		// std::cout << "key_flag:" << key_flag << "linear:" << linear << "angular:" << angular << std::endl;
-		key_flag = true;
+
 		if (key_flag){
-			yhs_dgt001m.targetSpeed(yhs_dgt001m.currentTwist().linear.x);
-			yhs_dgt001m.targetAngleSpeed(yhs_dgt001m.currentTwist().angular.z);
+			yhs_dgt001m.targetSpeed(yhs_dgt001m.currentTwistRemote().linear.x);
+			yhs_dgt001m.targetAngleSpeed(yhs_dgt001m.currentTwistRemote().angular.z);
 			// std::cout << "targetSpeed:" << yhs_dgt001m.targetSpeed() << std::endl;
 			// std::cout << "targetAngleSpeed:" << yhs_dgt001m.targetAngleSpeed() << std::endl;
 		}else{
@@ -316,9 +343,10 @@ int main(int argc, char *argv[]) {
 			// yhs.targetSteeringAngle(vm["steering"].as<float>());    		   
 			yhs_dgt001m.targetAngleSpeed(yhs_dgt001m.currentTwist().angular.z);            
 		}
-        std::this_thread::sleep_for(50ms);
+        std::this_thread::sleep_for(100ms);
 	}
 	// yhs_dgt001m.targetSpeed(0);
 	// yhs_dgt001m.targetSteeringAngle(0);
 	return 0;
 }
+ 

@@ -56,8 +56,9 @@ namespace internal {
 // Where x = [y;z] is a partition of the variables.  The partitioning
 // of the variables is such that, E'E is a block diagonal matrix. Or
 // in other words, the parameter blocks in E form an independent set
-// of the graph implied by the block matrix A'A. Then, this class
-// provides the functionality to compute the Schur complement system
+// of the of the graph implied by the block matrix A'A. Then, this
+// class provides the functionality to compute the Schur complement
+// system
 //
 //   S z = r
 //
@@ -273,7 +274,7 @@ class SchurEliminator : public SchurEliminatorBase {
   // buffer_layout[z2] = y1 * z1 + y1 * z5
   typedef std::map<int, int> BufferLayoutType;
   struct Chunk {
-    Chunk(int start) : size(0), start(start) {}
+    Chunk() : size(0) {}
     int size;
     int start;
     BufferLayoutType buffer_layout;

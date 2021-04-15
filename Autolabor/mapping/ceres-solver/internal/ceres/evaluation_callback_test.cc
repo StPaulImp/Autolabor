@@ -254,7 +254,7 @@ class IncrementingEvaluationCallback : public EvaluationCallback {
     counter_ += 1.0;
   }
 
-  double counter() const { return counter_; }
+  const double counter() const { return counter_; }
 
  private:
   double counter_ = -1;

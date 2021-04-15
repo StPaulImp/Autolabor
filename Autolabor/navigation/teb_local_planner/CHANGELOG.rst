@@ -2,6 +2,62 @@
 Changelog for package teb_local_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.4 (2019-12-02)
+------------------
+* Fixed TEB autoResize if last TimeDiff is small
+* Add a rotational threshold for identifying a warm start goal
+* Contributors: Rainer Kümmerle
+
+0.8.3 (2019-10-25)
+------------------
+* Limiting the control look-ahead pose to the first that execeeds the expected look-ahead time (thanks to Marco Bassa)
+* test_optim_node fix circular obstacles (thanks to dtaranta)
+* Fix shadow variable warning (thanks to Victor Lopez)
+* Use SYSTEM when including external dependencies headers (thanks to Victor Lopez)
+* Robustify initTrajectoryToGoal if a plan is given (thanks to Rainer Kuemmerle)
+* Adding the option to shift ahead the target pose used to extract the velocity command (thanks to Marco Bassa)
+* Fixed segfault in optimal_planner.cpp when clearing graph with unallocated optimizer.
+  Fixes `#158 <https://github.com/rst-tu-dortmund/teb_local_planner/issues/158>`_.
+* On footprintCost, fail only if footprint is in collision, not outside the map or on unknown space (thanks to corot)
+* Native MoveBaseFlex support added: Implements both nav_core::BaseLocalPlanner and mbf_costmap_core::CostmapController abstract interfaces (thanks to corot)
+* added warning if parameter optimal_time is <= 0
+* Nonlinear obstacle cost from EdgeInflatedObstacle also added to EdgeObstacle.
+  See `#140 <https://github.com/rst-tu-dortmund/teb_local_planner/issues/140>`_.
+* Fixed proper initialization of parameter obstacle_cost_exponent in case it is not loaded from the parameter server
+* Contributors: Christoph Rösmann, Marco Bassa, Rainer Kuemmerle, Victor Lopez, corot, dtaranta
+
+0.8.2 (2019-07-02)
+------------------
+* Allow scripts to be executable and usable by rosrun after catkin_make install and through the catkin release process (thanks to Devon Ash)
+* Add nonlinear part to obstacle cost to improve narrow gap behavior.
+  Parameter `obstacle_cost_exponent` defines the exponent of the nonlinear cost term.
+  The default linear behavior is achieved by setting this parameter to 1 (default).
+  A value of 4 performed well in some tests and experiments (thanks to Howard Cochran).
+* Parameter `global_plan_prune_distance` added via ros parameter server.
+* Fixed SIGSEGV in optimizeAllTEBs() if main thread is interrupted by boost (thanks to Howard Cochran)
+* Fixed SIGSEGV crash in deleteTebDetours() (thanks to Howard Cochran)
+* On footprint visualization, avoid overshadowing by obstacles (thanks to corot)
+* Do not ignore robot model on the association stage.
+  Important mostly for polygon footprint model (thanks to corot).
+* Adjustable color for footprint visualization
+* Showing (detected) infeasible robot poses in a separate marker namespace and color
+* Added edge for minimizing Euclidean path length (parameter: `weight_shortest_path`)
+* Ackermann steering conversion (python script): fixed direction inversion in backwards mode when `cmd_angle_instead_rotvel` is true (thanks to Tobi Loew)
+* Fixed wrong skipping condition in AddEdgesKinematicsCarlike() (thanks to ShiquLIU)
+* Never discarding the previous best teb in renewAndAnalyzeOldTebs (thanks to Marco Bassa)
+* Allowing for the fallback to a different trajectory when the costmap check fails. This prevents the switch to unfeasible trajectories (thanks to Marco Bassa).
+* Skipping the generation of the homotopy exploration graph in case the maximum number of allowed classes is reached (thanks to Marco Bassa)
+* Changed isTrajectoryFeasible function to allow for a more accurate linear and angular discretization (thanks to Marco Bassa)
+* Function TebOptimalPlanner::computeError() considers now the actual optimizer weights. 
+  As a result, the default value of `selection_obst_cost_scale` is reduced (thanks to Howard Cochran).
+* update to use non deprecated pluginlib macro (thanks to Mikael Arguedas)
+* Avoiding h signature interpolation between coincident poses (thanks to Marco Bassa)
+* New strategy for the deletion of detours: Detours are now determined w.r.t. the least-cost alternative and not w.r.t. just the goal heading.
+  Deletion of additional alternatives applies if either an initial backward motion is detected, if the transition time is much bigger than the duration of the best teb
+  and if a teb cannot be optimized (thanks to Marco Bassa).
+  Optionally allowing the usage of the initial plan orientation when initializing new tebs.
+* Contributors: Christoph Rösmann, Mikael Arguedas, Devon Ash, Howard Cochran, Marco Bassa, ShiquLIU, Tobi Loew, corot
+
 0.8.1 (2018-08-14)
 ------------------
 * bugfix in calculateHSignature. Fixes `#90 <https://github.com/rst-tu-dortmund/teb_local_planner/issues/90>`_.

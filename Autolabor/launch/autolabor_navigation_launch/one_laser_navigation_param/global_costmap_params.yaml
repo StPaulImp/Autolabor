@@ -8,7 +8,7 @@ robot_base_frame: base_link
 
 # distance a circular robot should be clear of the obstacle (kobuki: 0.18)
 # robot_radius: 0.20  
-footprint: [[0.19, 0.245], [0.19, -0.245], [-0.19, -0.245], [-0.19, 0.245]]  # if the robot is not circular
+footprint: [[0.18, 0.245], [0.18, -0.245], [-0.18, -0.245], [-0.18, 0.245]]  # if the robot is not circular
 
 # used for obstacle_layer, 3D->voxel 2D->other
 map_type: costmap
@@ -23,8 +23,8 @@ update_frequency: 2.0
 publish_frequency: 1.0
 
 # Whether or not to use a rolling window version of the costmap. If the static_map parameter is set to true, this parameter must be set to false. (bool, default: false)
-rolling_window: true
-static_map: false
+rolling_window: false
+static_map: true
 
 # If true the full costmap is published to "~<name>/grid" every update. If false only the part of the costmap that has changed is published on the "~<name>/grid_updates" topic. (bool, default: false)
 always_send_full_costmap: false

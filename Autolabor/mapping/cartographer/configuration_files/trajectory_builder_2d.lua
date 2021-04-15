@@ -34,9 +34,9 @@ TRAJECTORY_BUILDER_2D = {
     max_range = 50.,
   },
 
-  use_online_correlative_scan_matching = false,
+  use_online_correlative_scan_matching = true,
   real_time_correlative_scan_matcher = {
-    linear_search_window = 0.1,
+    linear_search_window = 0.2,
     angular_search_window = math.rad(20.),
     translation_delta_cost_weight = 1e-1,
     rotation_delta_cost_weight = 1e-1,
@@ -49,14 +49,14 @@ TRAJECTORY_BUILDER_2D = {
     ceres_solver_options = {
       use_nonmonotonic_steps = false,
       max_num_iterations = 20,
-      num_threads = 1,
+      num_threads = 2,
     },
   },
 
   motion_filter = {
     max_time_seconds = 5.,
     max_distance_meters = 0.2,
-    max_angle_radians = math.rad(1.),
+    max_angle_radians = math.rad(20.),
   },
 
   -- TODO(schwoere,wohe): Remove this constant. This is only kept for ROS.

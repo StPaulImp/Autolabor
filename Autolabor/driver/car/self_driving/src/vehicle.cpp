@@ -8,7 +8,7 @@
 #include <pthread.h>
 #include <stdexcept>
 
-#include "../include/vehicle.h"
+#include "vehicle.h"
 
 /*----------车体命名空间------------*/
 namespace vehicle {

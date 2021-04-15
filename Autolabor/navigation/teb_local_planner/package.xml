@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>teb_local_planner</name>
-  <version>0.8.1</version>
+  <version>0.8.4</version>
+
   <description>
     The teb_local_planner package implements a plugin
     to the base_local_planner of the 2D navigation stack.
@@ -39,6 +40,8 @@
   <depend>libg2o</depend>
   <depend>nav_core</depend>
   <depend>nav_msgs</depend>
+  <depend>mbf_costmap_core</depend>
+  <depend>mbf_msgs</depend>
   <depend>pluginlib</depend>
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
@@ -48,5 +51,6 @@
 
   <export>
     <nav_core plugin="${prefix}/teb_local_planner_plugin.xml"/>
+    <mbf_costmap_core plugin="${prefix}/teb_local_planner_plugin.xml"/>
   </export>
 </package>

@@ -417,13 +417,14 @@ public:
    * via the argument \c dt.
    * @param plan vector of geometry_msgs::PoseStamped
    * @param max_vel_x maximum translational velocity used for determining time differences
+   * @param max_vel_theta maximum rotational velocity used for determining time differences
    * @param estimate_orient if \c true, calculate orientation using the straight line distance vector between consecutive poses
    *                        (only copy start and goal orientation; recommended if no orientation data is available).
    * @param min_samples Minimum number of samples that should be initialized at least
    * @param guess_backwards_motion Allow the initialization of backwards oriented trajectories if the goal heading is pointing behind the robot (this parameter is used only if \c estimate_orient is enabled.
    * @return true if everything was fine, false otherwise
    */
-  bool initTrajectoryToGoal(const std::vector<geometry_msgs::PoseStamped>& plan, double max_vel_x, bool estimate_orient=false, int min_samples = 3, bool guess_backwards_motion = false);
+  bool initTrajectoryToGoal(const std::vector<geometry_msgs::PoseStamped>& plan, double max_vel_x, double max_vel_theta, bool estimate_orient=false, int min_samples = 3, bool guess_backwards_motion = false);
 
 
   ROS_DEPRECATED bool initTEBtoGoal(const PoseSE2& start, const PoseSE2& goal, double diststep=0, double timestep=1, int min_samples = 3, bool guess_backwards_motion = false)
@@ -446,7 +447,7 @@ public:
   {
     ROS_WARN_ONCE("initTEBtoGoal is deprecated and has been replaced by initTrajectoryToGoal. The signature has changed: dt has been replaced by max_vel_x. \
                    this deprecated method sets max_vel = 1. Please update your code.");
-    return initTrajectoryToGoal(plan, dt, estimate_orient, min_samples, guess_backwards_motion);
+    return initTrajectoryToGoal(plan, 1.0, 1.0, estimate_orient, min_samples, guess_backwards_motion);
   }
 
   
@@ -623,22 +624,6 @@ public:
    * @brief Calculate the length (accumulated euclidean distance) of the trajectory
    */
   double getAccumulatedDistance() const;
-  
-  /**
-   * @brief Detect whether the trajectory contains detours.
-   * 
-   * Two different cases forces the method to return \c true : \n
-   * 	1. The trajectory contain parts that increase the distance to the goal. \n
-   * 	   This is checked by comparing the orientations theta_i with the goal heading. \n
-   * 	   If the scalar product is below the \c threshold param, the method returns \c true.
-   * 	2. The trajectory consist of backwards motions at the beginning of the trajectory,
-   * 	   e.g. the second pose is behind the start pose w.r.t. to the same goal heading.
-   * 
-   * Detours are not critical, but can be takein into account if multiple trajectory candidates are avaiable.
-   * @param threshold Threshold paramter for allowed orientation changes (below 0 -> greater than 90 deg)
-   * @return \c true if one of both cases mentioned above are satisfied, false otherwise
-   */
-  bool detectDetoursBackwards(double threshold=0) const;
   
   /**
    * @brief Check if all trajectory points are contained in a specific region

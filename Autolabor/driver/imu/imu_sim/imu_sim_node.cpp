@@ -93,7 +93,7 @@ int main(int argc, char **argv)
         ROS_INFO("linear_acceleration.x:[%lf]", imu_data.linear_acceleration.x);
         imu_data.linear_acceleration.y = 0.0;//(current_vy - vy) / dt; 
         ROS_INFO("linear_acceleration.y:[%lf]", imu_data.linear_acceleration.y);
-        imu_data.linear_acceleration.z = 0.001;
+        imu_data.linear_acceleration.z = 0.0;
         //角速度
         imu_data.angular_velocity.x = 0.0; 
         imu_data.angular_velocity.y = 0.0; 

@@ -1,6 +1,6 @@
 <robot name="autolabor_description">
 
-    <!-- <link name="base_footprint">
+    <link name="base_footprint">
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
                 <geometry>
@@ -15,12 +15,12 @@
                 <box size="0.001 0.001 0.001" />
             </geometry>
         </collision>
-    </link> -->
+    </link>
 
     <link name="base_link">
         <visual>
             <origin
-                    xyz="-0.363 0.3085 0.8883"
+                    xyz="-0.363 0.3085 0.2883"
                     rpy="0. 1.57 -1.57"/>
             <geometry>
                 <mesh
@@ -41,11 +41,11 @@
         </collision>
     </link>
 
-    <!-- <joint name="base_footprint_joint" type="fixed">
-        <origin xyz="0.0 0 0.625" rpy="0 0 0" />
+    <joint name="base_footprint_joint" type="fixed">
+        <origin xyz="0.0 0.0 0.14" rpy="0 0 0" />
         <parent link="base_footprint" />
         <child link="base_link" />
-    </joint> -->
+    </joint>
     
     <!-- <link name="lidar_front">
         <visual>
@@ -100,7 +100,7 @@
     <joint name="rslidar_link_joint" type="fixed">
         <parent link="base_link"/>
         <child link="rslidar"/>
-        <origin xyz="0.004 0.0 0.60" rpy="0.0 0.0 0.0"/>
+        <origin xyz="0.004 0.0 0.50" rpy="0.0 0.0 0.0"/>
     </joint>
 
     <link name="imu_link">

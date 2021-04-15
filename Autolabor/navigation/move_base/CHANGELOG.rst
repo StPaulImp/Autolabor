@@ -2,6 +2,37 @@
 Changelog for package move_base
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.16.7 (2020-08-27)
+-------------------
+* move_base: Add options for make_plan service (`#981 <https://github.com/ros-planning/navigation/issues/981>`_)
+  Adds the following two parameters for the ~make_plan service:
+  1. make_plan_clear_costmap
+  Whether or not to clear the global costmap on make_plan service call.
+  2. make_plan_add_unreachable_goal
+  Whether or not to add the original goal to the path if it is unreachable in the make_plan service call.
+* Contributors: nxdefiant
+
+1.16.6 (2020-03-18)
+-------------------
+
+1.16.5 (2020-03-15)
+-------------------
+
+1.16.4 (2020-03-04)
+-------------------
+* [Windows][melodic] Navigation (except for map_server and amcl) Windows build bring up (`#851 <https://github.com/cobalt-robotics/navigation/issues/851>`_)
+* Contributors: Sean Yen
+
+1.16.3 (2019-11-15)
+-------------------
+* Merge branch 'melodic-devel' into layer_clear_area-melodic
+* Added publishZeroVelocity() before starting planner (`#751 <https://github.com/ros-planning/navigation/issues/751>`_)
+  Edit for Issue `#750 <https://github.com/ros-planning/navigation/issues/750>`_
+* Merge pull request `#831 <https://github.com/ros-planning/navigation/issues/831>`_ from ros-planning/feature/remove_slashes
+  [melodic] Remove leading slashes from default frame_id parameters
+* Remove leading slashes from default frame_id parameters
+* Contributors: David V. Lu, Michael Ferguson, SUNIL SULANIA, Steven Macenski
+
 1.16.2 (2018-07-31)
 -------------------
 

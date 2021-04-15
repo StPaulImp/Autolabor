@@ -87,6 +87,7 @@ if(CATKIN_ENABLE_TESTING)
 
   add_executable(rtest test/rtest.cpp test/test_constants.cpp)
   add_dependencies(rtest ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+  add_dependencies(tests rtest)
   target_link_libraries( rtest
       ${GTEST_LIBRARIES}
       ${catkin_LIBRARIES}
@@ -99,10 +100,12 @@ endif()
 
 ## Install executables and/or libraries
 install(TARGETS map_server-map_saver map_server
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(TARGETS map_server_image_loader
-  DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
 
 ## Install project namespaced headers
 install(DIRECTORY include/${PROJECT_NAME}/

@@ -49,6 +49,7 @@
         <param name="angular_min" value="0.157" />
         <param name="angular_max" value="1.57" />
         <param name="angular_step" value="0.157" />
+        <remap from="cmd_vel" to="cmd_vel_remote"/>
     </node>
 
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />

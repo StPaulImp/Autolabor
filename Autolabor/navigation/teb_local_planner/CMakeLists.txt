@@ -16,6 +16,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   nav_core
   nav_msgs
+  mbf_costmap_core
+  mbf_msgs
   roscpp
   std_msgs
   pluginlib
@@ -157,6 +159,7 @@ catkin_package(
 	nav_msgs
 	pluginlib
 	roscpp
+  mbf_costmap_core
 	std_msgs
         tf2
         tf2_ros
@@ -170,9 +173,9 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
+include_directories(include)
 include_directories(
-  include
+  SYSTEM
   ${EXTERNAL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
@@ -223,10 +226,16 @@ target_link_libraries(test_optim_node
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(PROGRAMS
+  scripts/cmd_vel_to_ackermann_drive.py
+  scripts/export_to_mat.py
+  scripts/export_to_svg.py
+  scripts/publish_dynamic_obstacle.py
+  scripts/publish_test_obstacles.py
+  scripts/publish_viapoints.py
+  scripts/visualize_velocity_profile.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables and/or libraries for installation
 install(TARGETS teb_local_planner
@@ -258,6 +267,13 @@ install(DIRECTORY
 #############
 ## Testing ##
 #############
+
+if (CATKIN_ENABLE_TESTING)
+  catkin_add_gtest(test_teb_basics test/teb_basics.cpp)
+  if(TARGET test_teb_basics)
+     target_link_libraries(test_teb_basics teb_local_planner)
+  endif()
+endif()
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_teb_local_planner.cpp)

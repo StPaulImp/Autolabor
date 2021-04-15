@@ -44,6 +44,7 @@
 #include <functional>
 #include <vector>
 #include <iterator>
+#include <random>
 
 #include <boost/shared_ptr.hpp>
 
@@ -143,6 +144,7 @@ public:
                   TebVisualizationPtr visualization = TebVisualizationPtr(), const ViaPointContainer* via_points = NULL);
 
 
+  void updateRobotModel(RobotFootprintModelPtr robot_model );
 
   /** @name Plan a trajectory */
   //@{
@@ -193,9 +195,10 @@ public:
    * @param[out] vx translational velocity [m/s]
    * @param[out] vy strafing velocity which can be nonzero for holonomic robots [m/s]
    * @param[out] omega rotational velocity [rad/s]
+   * @param[in] look_ahead_poses index of the final pose used to compute the velocity command.
    * @return \c true if command is valid, \c false otherwise
    */
-  virtual bool getVelocityCommand(double& vx, double& vy, double& omega) const;
+  virtual bool getVelocityCommand(double& vx, double& vy, double& omega, int look_ahead_poses) const;
 
   /**
    * @brief Access current best trajectory candidate (that relates to the "best" homotopy class).
@@ -222,6 +225,21 @@ public:
    */
   virtual bool isTrajectoryFeasible(base_local_planner::CostmapModel* costmap_model, const std::vector<geometry_msgs::Point>& footprint_spec,
                                     double inscribed_radius = 0.0, double circumscribed_radius=0.0, int look_ahead_idx=-1);
+
+  /**
+   * @brief In case of empty best teb, scores again the available plans to find the best one.
+   *        The best_teb_ variable is updated consequently.
+   * @return Shared pointer to the best TebOptimalPlanner that contains the selected trajectory (TimedElasticBand).
+   *         An empty pointer is returned if no plan is available.
+   */
+  TebOptimalPlannerPtr findBestTeb();
+
+  /**
+   * @brief Removes the specified teb and the corresponding homotopy class from the list of available ones.
+   * @param pointer to the teb Band to be removed
+   * @return Iterator to the next valid teb if available, else to the end of the tebs container.
+   */
+  TebOptPlannerContainer::iterator removeTeb(TebOptimalPlannerPtr& teb);
 
   //@}
 
@@ -263,17 +281,9 @@ public:
    * @param goal Goal pose (e.g. robot's goal)
    * @param dist_to_obst Allowed distance to obstacles: if not satisfying, the path will be rejected (note, this is not the distance used for optimization).
    * @param @param start_velocity start velocity (optional)
+   * @param free_goal_vel if \c true, a nonzero final velocity at the goal pose is allowed, otherwise the final velocity will be zero (default: false)
    */
-  void exploreEquivalenceClassesAndInitTebs(const PoseSE2& start, const PoseSE2& goal, double dist_to_obst, const geometry_msgs::Twist* start_vel);
-
-
-  /**
-   * @brief Check all available trajectories (TEBs) for detours and delete found ones.
-   * @see TimedElasticBand::detectDetoursBackwards
-   * @param threshold Threshold paramter for allowed orientation changes (below 0 -> greater than 90 deg)
-   */
-  void deleteTebDetours(double threshold=0.0);
-
+  void exploreEquivalenceClassesAndInitTebs(const PoseSE2& start, const PoseSE2& goal, double dist_to_obst, const geometry_msgs::Twist* start_vel, bool free_goal_vel = false);
 
   /**
    * @brief Add a new Teb to the internal trajectory container, if this teb constitutes a new equivalence class. Initialize it using a generic 2D reference path
@@ -285,29 +295,32 @@ public:
    * @param start_orientation Orientation of the first pose of the trajectory (optional, otherwise use goal heading)
    * @param goal_orientation Orientation of the last pose of the trajectory (optional, otherwise use goal heading)
    * @param start_velocity start velocity (optional)
+   * @param free_goal_vel if \c true, a nonzero final velocity at the goal pose is allowed, otherwise the final velocity will be zero (default: false)
    * @tparam BidirIter Bidirectional iterator type
    * @tparam Fun unyary function that transforms the dereferenced iterator into an Eigen::Vector2d
    * @return Shared pointer to the newly created teb optimal planner
    */
   template<typename BidirIter, typename Fun>
-  TebOptimalPlannerPtr addAndInitNewTeb(BidirIter path_start, BidirIter path_end, Fun fun_position, double start_orientation, double goal_orientation, const geometry_msgs::Twist* start_velocity);
+  TebOptimalPlannerPtr addAndInitNewTeb(BidirIter path_start, BidirIter path_end, Fun fun_position, double start_orientation, double goal_orientation, const geometry_msgs::Twist* start_velocity, bool free_goal_vel = false);
 
   /**
    * @brief Add a new Teb to the internal trajectory container, if this teb constitutes a new equivalence class. Initialize it with a simple straight line between a given start and goal
    * @param start start pose
    * @param goal goal pose
    * @param start_velocity start velocity (optional)
+   * @param free_goal_vel if \c true, a nonzero final velocity at the goal pose is allowed, otherwise the final velocity will be zero (default: false)
    * @return Shared pointer to the newly created teb optimal planner
    */
-  TebOptimalPlannerPtr addAndInitNewTeb(const PoseSE2& start, const PoseSE2& goal, const geometry_msgs::Twist* start_velocity);
+  TebOptimalPlannerPtr addAndInitNewTeb(const PoseSE2& start, const PoseSE2& goal, const geometry_msgs::Twist* start_velocity, bool free_goal_vel = false);
 
   /**
    * @brief Add a new Teb to the internal trajectory container , if this teb constitutes a new equivalence class. Initialize it using a PoseStamped container
    * @param initial_plan container of poses (start and goal orientation should be valid!)
    * @param start_velocity start velocity (optional)
+   * @param free_goal_vel if \c true, a nonzero final velocity at the goal pose is allowed, otherwise the final velocity will be zero (default: false)
    * @return Shared pointer to the newly created teb optimal planner
    */
-  TebOptimalPlannerPtr addAndInitNewTeb(const std::vector<geometry_msgs::PoseStamped>& initial_plan, const geometry_msgs::Twist* start_velocity);
+  TebOptimalPlannerPtr addAndInitNewTeb(const std::vector<geometry_msgs::PoseStamped>& initial_plan, const geometry_msgs::Twist* start_velocity, bool free_goal_vel = false);
 
   /**
    * @brief Update TEBs with new pose, goal and current velocity.
@@ -363,17 +376,6 @@ public:
   virtual void setPreferredTurningDir(RotType dir);
 
   /**
-   * @brief Check if the planner suggests a shorter horizon (e.g. to resolve problems)
-   *
-   * This method is intendend to be called after determining that a trajectory provided by the planner is infeasible.
-   * In some cases a reduction of the horizon length might resolve problems. E.g. if a planned trajectory cut corners.
-   * Implemented cases: see TebOptimalPlanner
-   * @param initial_plan The intial and transformed plan (part of the local map and pruned up to the robot position)
-   * @return \c true, if the planner suggests a shorter horizon, \c false otherwise.
-   */
-  virtual bool isHorizonReductionAppropriate(const std::vector<geometry_msgs::PoseStamped>& initial_plan) const;
-
-  /**
    * @brief Calculate the equivalence class of a path
    *
    * Currently, only the H-signature (refer to HSignature) is implemented.
@@ -395,6 +397,8 @@ public:
    * @return read-only reference to the teb container.
    */
   const TebOptPlannerContainer& getTrajectoryContainer() const {return tebs_;}
+
+  bool hasDiverged() const override;
 
   /**
    * Compute and return the cost of the current optimization graph (supports multiple trajectories)
@@ -420,6 +424,24 @@ public:
         return true; // Found! Homotopy class already exists, therefore nothing added
       return false;
   }
+  /**
+   * @brief Checks if the orientation of the computed trajectories differs from that of the best plan of more than the
+   *  specified threshold and eventually deletes them.
+   *  Also deletes detours with a duration much bigger than the duration of the best_teb (duration / best duration > max_ratio_detours_duration_best_duration).
+   * @param orient_threshold: Threshold paramter for allowed orientation changes in radians
+   * @param len_orientation_vector: length of the vector used to compute the start orientation
+   */
+  void deletePlansDetouringBackwards(const double orient_threshold, const double len_orientation_vector);
+  /**
+   * @brief Given a plan, computes its start orientation using a vector of length >= len_orientation_vector
+   *        starting from the initial pose.
+   * @param plan: Teb to be analyzed
+   * @param len_orientation_vector: min length of the vector used to compute the start orientation
+   * @param orientation: computed start orientation
+   * @return: Could the vector for the orientation check be computed? (False if the plan has no pose with a distance
+   *          > len_orientation_vector from the start poseq)
+   */
+  bool computeStartOrientation(const TebOptimalPlannerPtr plan, const double len_orientation_vector, double& orientation);
 
 
   /**
@@ -455,7 +477,7 @@ public:
   /**
    * @brief Internal helper function that adds a new equivalence class to the list of known classes only if it is unique.
    * @param eq_class equivalence class that should be tested
-   * @param lock if \c true, exclude the H-signature from deletion, e.g. in deleteTebDetours().
+   * @param lock if \c true, exclude the H-signature from deletion.
    * @return \c true if the h-signature was added and no duplicate was found, \c false otherwise
    */
   bool addEquivalenceClassIfNew(const EquivalenceClassPtr& eq_class, bool lock=false);
@@ -466,6 +488,24 @@ public:
    */
   const EquivalenceClassContainer& getEquivalenceClassRef() const  {return equivalence_classes_;}
 
+  bool isInBestTebClass(const EquivalenceClassPtr& eq_class) const;
+
+  int numTebsInClass(const EquivalenceClassPtr& eq_class) const;
+
+  int numTebsInBestTebClass() const;
+
+  /**
+   * @brief Randomly drop non-optimal TEBs to so we can explore other alternatives
+   *
+   * The HCP has a tendency to become "fixated" once its tebs_ list becomes
+   * fully populated, repeatedly refining and evaluating paths from the same
+   * few homotopy classes until the robot moves far enough for a teb to become
+   * invalid. As a result, it can fail to discover a more optimal path. This
+   * function alleviates this problem by randomly dropping TEBs other than the
+   * current "best" one with a probability controlled by
+   * selection_dropping_probability parameter.
+   */
+  void randomlyDropTebs();
 
 protected:
 
@@ -487,7 +527,7 @@ protected:
    * First all old h-signatures are deleted, since they could be invalid for this planning step (obstacle position may changed).
    * Afterwards the h-signatures are calculated for each existing TEB/trajectory and is inserted to the list of known h-signatures.
    * Doing this is important to prefer already optimized trajectories in contrast to initialize newly explored coarse paths.
-   * @param delete_detours if this param is \c true, all existing TEBs are cleared from detour-candidates by utilizing deleteTebDetours().
+   * @param delete_detours if this param is \c true, all existing TEBs are cleared from detour-candidates calling deletePlansGoingBackwards().
    */
   void renewAndAnalyzeOldTebs(bool delete_detours);
 
@@ -512,6 +552,7 @@ protected:
   // internal objects (memory management owned)
   TebVisualizationPtr visualization_; //!< Instance of the visualization class (local/global plan, obstacles, ...)
   TebOptimalPlannerPtr best_teb_; //!< Store the current best teb.
+  EquivalenceClassPtr best_teb_eq_class_; //!< Store the equivalence class of the current best teb
   RobotFootprintModelPtr robot_model_; //!< Robot model shared instance
 
   const std::vector<geometry_msgs::PoseStamped>* initial_plan_; //!< Store the initial plan if available for a better trajectory initialization
@@ -527,7 +568,10 @@ protected:
 
   ros::Time last_eq_class_switching_time_; //!< Store the time at which the equivalence class changed recently
 
+  std::default_random_engine random_;
   bool initialized_; //!< Keeps track about the correct initialization of this class
+
+  TebOptimalPlannerPtr last_best_teb_;  //!< Points to the plan used in the previous control cycle
 
 
 
