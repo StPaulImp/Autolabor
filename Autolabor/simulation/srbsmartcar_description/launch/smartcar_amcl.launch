@@ -1,0 +1,54 @@
+<launch>
+
+    <!-- Load the system time of our robot -->
+    <param name="use_sim_time" value="false" />
+
+    <!-- Load the URDF/Xacro model of our robot -->
+    <arg name="model" />  
+    <arg name="gui" default="False" />  
+    <param name="robot_description" textfile="$(find srbsmartcar_description)/urdf/srbsmartcar.urdf" />  
+    <param name="use_gui" value="$(arg gui)"/>  
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+      <param name="publish_frequency" type="double" value="20.0" />
+    </node>
+    
+    <!-- Load the simulator of our robot -->
+    <node name="arbotix" pkg="arbotix_python" type="arbotix_driver" output="screen" clear_params="true">
+      	<rosparam file="$(find robot_driver)/config/chassis/fake_turtlebot_arbotix.yaml" command="load" />
+    	<param name="sim" value="true"/>
+    </node>
+    
+    <!-- <remap from="velodyne" to="laser"/> -->
+    <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch" />
+    
+    <!-- Load sensor IMU -->
+    <include file="$(find lpms_imu)/lpms_imu.launch" />
+    
+    <!-- Load the chassis model of our robot -->
+    <include file="$(find robot_driver)/launch/srbot_chassis_driver.launch" />
+    
+    <!-- Load the joy of our robot -->
+    <!-- <node name="turtlebot3_teleop_key" pkg="robot_driver" type="turtlebot3_teleop_key" /> -->
+	
+    <!-- Set the name of the map yaml file: can be overridden on the command line. -->
+    <arg name="map" default="map_cut.yaml" />
+
+    <!-- Run the map server with the desired map -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find robot_driver)/maps/$(arg map)"/>
+    
+    <node pkg="robot_driver" type="static_transform_publisher_node" name="map_to_odom" args="0 0 0 0 0 0 1 /map /odom 1000" output="screen"/>
+ 
+    <!-- Run real localization compatible with AMCL output -->
+    <!-- Fire up AMCL -->
+    <include file="$(find robot_driver)/launch/tb_amcl.launch" />
+
+    <!-- The move_base node -->
+    <include file="$(find robot_driver)/launch/fake_move_base_obstacles.launch" />
+
+    <!-- Fire up robot_pose_ekf -->
+    <include file="$(find robot_pose_ekf)/robot_pose_ekf.launch" />
+    
+    <!-- Fire up inspect -->
+    <node name="nav_rail" pkg="robot_driver" type="nav_rail.py" output="screen" />
+</launch> 

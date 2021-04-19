@@ -1,0 +1,15 @@
+<package>
+  <description brief="srbsmartcar_description">
+
+     srbsmartcar_description
+
+  </description>
+  <author>gqy</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/srbsmartcar_description</url>
+  <depend package="urdf"/>
+
+</package>
+
+

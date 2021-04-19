@@ -4,7 +4,7 @@
 allow_unknown: true
 
 # A tolerance on the goal point for the planner. The planner will attempt to create a plan that is as close to the specified goal as possible but no further than default_tolerance away. (double, default: 0.0)
-default_tolerance: 0.0
+default_tolerance: 0.5
 
 # Specifies whether or not to visualize the potential area computed via a PointCloud2. (bool, default: false)
 visualize_potential: false

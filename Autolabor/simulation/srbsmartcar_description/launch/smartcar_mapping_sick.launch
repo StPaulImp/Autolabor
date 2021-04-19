@@ -1,0 +1,32 @@
+<launch>  
+	<!-- Load the URDF/Xacro model of our robot -->
+    <arg name="model" />  
+    <arg name="gui" default="False" />  
+    <param name="robot_description" textfile="$(find srbsmartcar_description)/urdf/xhtwsmartcar.urdf" />  
+    <param name="use_gui" value="$(arg gui)"/>  
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher">
+      <param name="publish_frequency" type="double" value="20.0" />
+    </node>
+    
+    <!-- Load the simulator of our robot -->
+    <node name="arbotix" pkg="arbotix_python" type="arbotix_driver" output="screen" clear_params="true">
+      	<rosparam file="$(find rbx1_bringup)/config/fake_turtlebot_arbotix.yaml" command="load" />
+    	<param name="sim" value="true"/>
+    </node>
+    
+    <!-- Load the sensor of our robot -->
+    <include file="$(find srbsmartcar_description)/launch/gmapping.launch"/>
+    <!-- <include file="$(find srbsmartcar_description)/launch/sick5xx.launch" /> -->
+
+    <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
+	  <param name="serial_port"         type="string" value="/dev/rplidar"/>  
+	  <param name="serial_baudrate"     type="int"    value="115200"/>
+	  <param name="frame_id"            type="string" value="base_laser_link"/>
+	  <param name="inverted"            type="bool"   value="false"/>
+	  <param name="angle_compensate"    type="bool"   value="true"/>
+    </node>
+
+    <!-- Load the system time of our robot -->
+    <param name="use_sim_time" value="false" />
+</launch> 

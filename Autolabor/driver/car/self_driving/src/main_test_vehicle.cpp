@@ -10,6 +10,7 @@
 #include <std_msgs/Bool.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf/transform_broadcaster.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
@@ -39,8 +40,11 @@ namespace vehicle
 		int control_rate_;
 		int sensor_rate_;
 
-		tf2_ros::TransformBroadcaster br_;
-		geometry_msgs::TransformStamped transformStamped_;
+		// tf2_ros::TransformBroadcaster br_;
+		// geometry_msgs::TransformStamped transformStamped_;
+
+		tf::TransformBroadcaster br_;
+		geometry_msgs::TransformStamped transformStamped_; 
 
 		ros::Time last_time_, now_;
 		bool publish_tf_;
@@ -119,7 +123,7 @@ namespace vehicle
 				_controlSocket.send(boost::asio::buffer(&frame, sizeof(frame)));
 				std::this_thread::sleep_for(100ms);
 			}
-		};
+		}
 
 		virtual void _rxFunc(){
 			std::cout << "_rxFunc-roswarrper" << std::endl;
@@ -165,40 +169,68 @@ namespace vehicle
 					yhs_wire_protocol::io_fb RemoteControlFeedBack(frame.data);
 					bool rcb = RemoteControlFeedBack.RemoteControl_Back();
 				}
+			}
+		}
+
+		void publish_odom_callback(const ros::TimerEvent &){
 				now_ = ros::Time().now();
 				delta_time_ = (now_ - last_time_).toSec();
 				// std::cout << "delta_time_:" << delta_time_ << std::endl;
 
-				if (delta_time_ >= (1.0 / control_rate_)) {
-					// std::cout << "delta_time_:" << delta_time_ << std::endl;
-					double delta_theta = _vehicleAngleSpeed * delta_time_;
-					double v_theta = _vehicleAngleSpeed;
+				// if (delta_time_ >= (1.0 / control_rate_)) {
+					// // std::cout << "delta_time_:" << delta_time_ << std::endl;
+					// double delta_theta = _vehicleAngleSpeed * delta_time_;
+					// double v_theta = _vehicleAngleSpeed;
 				
-					double delta_dis = _vehicleSpeed * delta_time_;
-					double v_dis = _vehicleSpeed;
+					// double delta_dis = _vehicleSpeed * delta_time_;
+					// double v_dis = _vehicleSpeed;
 
-					geometry_msgs::Twist feedback_twist_;
-					feedback_twist_.linear.x = _vehicleSpeed;
-					feedback_twist_.angular.z = _vehicleAngleSpeed;
-					// std::cout << "feedback_twist_.linear.x:" << _vehicleSpeed << std::endl;
-					// std::cout << "feedback_twist_.angular.z:" << _vehicleAngleSpeed << std::endl;
-					vel_feedback_pub_.publish(feedback_twist_);
+					// geometry_msgs::Twist feedback_twist_;
+					// feedback_twist_.linear.x = _vehicleSpeed;
+					// feedback_twist_.angular.z = _vehicleAngleSpeed;
+					// // std::cout << "feedback_twist_.linear.x:" << _vehicleSpeed << std::endl;
+					// // std::cout << "feedback_twist_.angular.z:" << _vehicleAngleSpeed << std::endl;
+					// vel_feedback_pub_.publish(feedback_twist_);
 
-					double delta_x, delta_y;
-					if (delta_theta == 0) {
-						delta_x = delta_dis;
-						delta_y = 0.0;
-					} else {
-						delta_x = delta_dis * (sin(delta_theta) / delta_theta);
-						delta_y = delta_dis * ((1 - cos(delta_theta)) / delta_theta);
+					// double delta_x, delta_y;
+					// if (delta_theta == 0) {
+					// 	delta_x = delta_dis;
+					// 	delta_y = 0.0;
+					// } else {
+					// 	delta_x = delta_dis * (sin(delta_theta) / delta_theta);
+					// 	delta_y = delta_dis * ((1 - cos(delta_theta)) / delta_theta);
+					// }
+
+					// accumulation_x_ += (cos(accumulation_th_) * delta_x - sin(accumulation_th_) * delta_y);
+					// accumulation_y_ += (sin(accumulation_th_) * delta_x + cos(accumulation_th_) * delta_y);
+					// accumulation_th_ += delta_theta;
+
+					
+					// accumulation_x_ += cos(accumulation_th_) * _vehicleSpeed * delta_time_;
+					// accumulation_y_ += -sin(accumulation_th_) * _vehicleSpeed * delta_time_;
+					// accumulation_th_ += _vehicleAngleSpeed * delta_time_;
+
+					// self.dx = d / elapsed
+                	// self.dr = th / elapsed
+
+					double d = _vehicleSpeed * delta_time_;
+					double th = _vehicleAngleSpeed * delta_time_;
+
+					if (d != 0){
+						double x = cos(th)*d;
+						double y = -sin(th)*d;
+						accumulation_x_ += (cos(accumulation_th_)*x - sin(accumulation_th_)*y);
+						accumulation_y_ += (sin(accumulation_th_)*x + cos(accumulation_th_)*y);
+					}
+					if (th != 0){
+						accumulation_th_ += th;
 					}
 
-					accumulation_x_ += (cos(accumulation_th_) * delta_x - sin(accumulation_th_) * delta_y);
-					accumulation_y_ += (sin(accumulation_th_) * delta_x + cos(accumulation_th_) * delta_y);
-					accumulation_th_ += delta_theta;
-
-					tf2::Quaternion q;
+					// tf2::Quaternion q;
+					// q.setRPY(0, 0, accumulation_th_);
+					tf::Quaternion q;
 					q.setRPY(0, 0, accumulation_th_);
+					// transformStamped_.setRotation(q);
 
 					if (publish_tf_) {
 						transformStamped_.header.stamp = ros::Time::now();
@@ -207,39 +239,38 @@ namespace vehicle
 						transformStamped_.transform.translation.x = accumulation_x_;
 						transformStamped_.transform.translation.y = accumulation_y_;
 						transformStamped_.transform.translation.z = 0.0;
-
-						transformStamped_.transform.rotation.x = q.x();
-						transformStamped_.transform.rotation.y = q.y();
-						transformStamped_.transform.rotation.z = q.z();
-						transformStamped_.transform.rotation.w = q.w();
-
+						transformStamped_.transform.rotation.x = 0.0; //q.x();
+						transformStamped_.transform.rotation.y = 0.0; //q.y();
+						transformStamped_.transform.rotation.z = sin(accumulation_th_/2); //q.z();
+						transformStamped_.transform.rotation.w = cos(accumulation_th_/2); //q.w();
 						br_.sendTransform(transformStamped_);
 					}
-
 					odom_.header.frame_id = odom_frame_;
 					odom_.child_frame_id = base_frame_;
 					odom_.header.stamp = now_;
 					odom_.pose.pose.position.x = accumulation_x_;
 					odom_.pose.pose.position.y = accumulation_y_;
 					odom_.pose.pose.position.z = 0;
-					odom_.pose.pose.orientation.x = q.getX();
-					odom_.pose.pose.orientation.y = q.getY();
-					odom_.pose.pose.orientation.z = q.getZ();
-					odom_.pose.pose.orientation.w = q.getW();
-					odom_.twist.twist.linear.x = v_dis;
+					odom_.pose.pose.orientation.x = 0; //q.getX();
+					odom_.pose.pose.orientation.y = 0; //q.getY();
+					odom_.pose.pose.orientation.z = sin(accumulation_th_/2);//q.getZ();
+					odom_.pose.pose.orientation.w = cos(accumulation_th_/2);//q.getW();
+					odom_.twist.twist.linear.x = _vehicleSpeed; //v_dis;
 					odom_.twist.twist.linear.y = 0;
-					odom_.twist.twist.angular.z = v_theta;
-
+					odom_.twist.twist.angular.z = _vehicleAngleSpeed; //v_theta;
+             
+					// odom_.twist.covariance[0] = 1e-3;
+					// odom_.twist.covariance[7] = 1e-3; 
+					// odom_.twist.covariance[8] = 1e-9;
+					// odom_.twist.covariance[14] = 1e6;
+					// odom_.twist.covariance[21] = 1e6;
+					// odom_.twist.covariance[28] = 1e6;
+					// odom_.twist.covariance[35] = 1e3;
 					odom_pub_.publish(odom_);
-
 					ROS_DEBUG_STREAM("accumulation_x: " << accumulation_x_ << "; accumulation_y: " << accumulation_y_ << "; accumulation_th: " << accumulation_th_);
 					last_time_ = now_;
-				}
-				// else{
-				// 	std::this_thread::sleep_for(1ms);
 				// }
-			}
-		};
+		}
 	public:
 		explicit ros_warpper(const std::string &ifname)
 		:YHS_DGT001M(ifname),start_flag_(true){
@@ -252,25 +283,30 @@ namespace vehicle
 			remote_cmd_sub = node.subscribe<geometry_msgs::Twist>("/cmd_vel_remote", 10, boost::bind(&ros_warpper::twist_callback_remote, this,_1));
 			flag_sub = node.subscribe<std_msgs::Bool>("/send_flag", 10, boost::bind(&ros_warpper::flag_callback, this,_1));
 			
+			
 			private_node.param<std::string>("port_name", port_name_, std::string("can0"));
 			private_node.param<std::string>("odom_frame", odom_frame_, std::string("odom"));
-			private_node.param<std::string>("base_frame", base_frame_, std::string("base_link"));
+			private_node.param<std::string>("base_frame", base_frame_, std::string("base_footprint"));
 
 			private_node.param<int>("baud_rate", baud_rate_, 500000);
 			private_node.param<int>("control_rate", control_rate_, 10);
 			private_node.param<int>("sensor_rate", sensor_rate_, 10);
-			private_node.param<bool>("publish_tf", publish_tf_, true);
+			private_node.param<bool>("publish_tf", publish_tf_, false);
 
+			
 			//多线程thread
 			_rx = std::thread(&YHS_DGT001M::_rxFunc,this);
 			_tx = std::thread(&YHS_DGT001M::_txFunc,this);
 			start();
+			ros::Timer odom_publish_timer = node.createTimer(ros::Duration(1.0 / sensor_rate_), &ros_warpper::publish_odom_callback, this);
 		};
 
 		void twist_callback (const geometry_msgs::Twist::ConstPtr &msg) { 
 			twist_mutex_.lock();
 			last_twist_time_ = ros::Time::now();
 			current_twist_ = *msg.get();
+			// current_twist_.linear.x *= 0.9;
+			// current_twist_.angular.z *= 0.9;
             twist_mutex_.unlock();
 		}
 
@@ -316,13 +352,11 @@ int main(int argc, char *argv[]) {
 
 	vehicle::ros_warpper yhs_dgt001m(std::string("can0"));
 	// yhs_dgt001m.ros_warpper_init();
-	
 
 	while(ros::ok()) {
 		ros::spinOnce();
 		bool key_flag = yhs_dgt001m.keyFlag();
 		double linear_speed, angular_speed;
-    
 		//		if ((ros::Time::now() - yhs_dgt001m.lastTwistTime()).toSec() <= 1.0) {
 		//			linear_speed = yhs_dgt001m.currentTwistRemote().linear.x;
 		//			angular_speed = yhs_dgt001m.currentTwistRemote().angular.z;
@@ -330,7 +364,6 @@ int main(int argc, char *argv[]) {
 		//			linear_speed = 0;
 		//			angular_speed = 0;
 		//		}
-
 		// std::cout << "key_flag:" << key_flag << "linear:" << linear << "angular:" << angular << std::endl;
 
 		if (key_flag){

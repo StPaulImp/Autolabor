@@ -1,6 +1,6 @@
 <launch>
-    <arg name="gui" default="false" />
-    <arg name="model" default="RS16" />
+    <arg name="model" default="RS16"/>  
+    <arg name="gui" default="false" /> 
     <arg name="device_ip" default="192.168.8.200" />
     <arg name="msop_port" default="6699" />
     <arg name="difop_port" default="7788" />
@@ -8,7 +8,6 @@
     <arg name="lidar_param_path" default="$(find rslidar_pointcloud)/data/rs_lidar_16/"/>
     <arg name="bag_filename" default="map_3d.bag" />
     <!-- <arg name="path_to_pcap" default="$(find rslidar_pointcloud)/data/rs_lidar_16/"/> -->
-
     <param name="use_sim_time" value="false" />
     <param name="robot_description" textfile="$(find autolabor_description)/urdf/autolabor_pro1_track_suit_3d.urdf" />
     <param name="use_gui" value="$(arg gui)" />
@@ -18,18 +17,15 @@
         <remap from="/wheel_odom" to="/odom"/>
         <param name="port_name" value="can0" />
         <param name="odom_frame" value="odom" />
-        <param name="base_frame" value="base_link" />
-
+        <param name="base_frame" value="base_footprint" />
         <param name="baud_rate" value="500000" />
         <param name="control_rate" value="10" />
         <param name="sensor_rate" value="10" />
-
 	    <param name="publish_tf" value="true" />
-        <remap from="wheel_odom" to="odom"/>
     </node>
 
     <!-- 雷达驱动 速腾16线-->
-    <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
+    <!-- <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
         <param name="model" value="$(arg model)"/>
         <param name="device_ip" value="$(arg device_ip)" />
         <param name="msop_port" value="$(arg msop_port)" />
@@ -46,7 +42,7 @@
         <param name="min_distance" value="0.4"/>
         <param name="resolution_type" value="0.5"/>
         <param name="intensity_mode" value="1"/>
-    </node>
+    </node> -->
 
     <!-- run pointcloud_to_laserscan node -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
@@ -62,7 +58,7 @@
             angle_increment: 0.003 # 0.17degree
             scan_time: 0.1
             range_min: 0.1
-            range_max: 100
+            range_max: 20
             use_inf: true
             inf_epsilon: 1.0
  
@@ -73,8 +69,10 @@
             concurrency_level: 0
         </rosparam>
     </node>
-    <!-- <node pkg="rslidar_sdk" name="rslidar_sdk_node" type="rslidar_sdk_node" output="screen">
-    </node> -->
+
+    <node pkg="rslidar_sdk" name="rslidar_sdk_node" type="rslidar_sdk_node" output="screen">
+    </node>
+    
     <!-- 键盘遥控 -->
     <node name="keyboard_control" pkg="autolabor_keyboard_control" type="keyboard_control_node">
         <param name="linear_min" value="0.1" />

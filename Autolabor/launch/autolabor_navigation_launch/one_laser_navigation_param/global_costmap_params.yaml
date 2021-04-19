@@ -4,17 +4,17 @@
 global_frame: map
 
 # The name of the frame for the base link of the robot.(string, default: "base_link")
-robot_base_frame: base_link
+robot_base_frame: base_footprint
 
 # distance a circular robot should be clear of the obstacle (kobuki: 0.18)
 # robot_radius: 0.20  
-footprint: [[0.18, 0.245], [0.18, -0.245], [-0.18, -0.245], [-0.18, 0.245]]  # if the robot is not circular
+footprint: [[0.19, 0.245], [0.19, -0.245], [-0.19, -0.245], [-0.19, 0.245]]  # if the robot is not circular
 
 # used for obstacle_layer, 3D->voxel 2D->other
 map_type: costmap
 
 # Specifies the delay in transform (tf) data that is tolerable in seconds. This parameter serves as a safeguard to losing a link in the tf tree while still allowing an amount of latency the user is comfortable with to exist in the system. For example, a transform being 0.2 seconds out-of-date may be tolerable, but a transform being 8 seconds out of date is not. If the tf transform between the coordinate frames specified by the global_frame and robot_base_frame parameters is transform_tolerance seconds older than ros::Time::now(), then the navigation stack will stop the robot.(double, default: 0.2)
-transform_tolerance: 0.5
+transform_tolerance: 0.2
 
 # The frequency in Hz for the map to be updated.(double, default: 5.0)
 update_frequency: 2.0
@@ -87,7 +87,7 @@ static_layer:
 #############################
 inflation_layer:
 # The radius in meters to which the map inflates obstacle cost values. (double, default: 0.55)
-  inflation_radius: 0.50
+  inflation_radius: 0.5
 
 # A scaling factor to apply to cost values during inflation. The cost function is computed as follows for all cells in the costmap further than the inscribed radius distance and closer than the inflation radius distance away from an actual obstacle: exp(-1.0 * cost_scaling_factor * (distance_from_obstacle - inscribed_radius)) * (costmap_2d::INSCRIBED_INFLATED_OBSTACLE - 1), where costmap_2d::INSCRIBED_INFLATED_OBSTACLE is currently 254. NOTE: since the cost_scaling_factor is multiplied by a negative in the formula, increasing the factor will decrease the resulting cost values. (double, default: 10.0)
   cost_scaling_factor: 10.0

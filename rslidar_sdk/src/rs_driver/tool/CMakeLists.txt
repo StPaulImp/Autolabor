@@ -28,7 +28,6 @@ target_link_libraries(rs_driver_viewer
 else()
 message("PCL Not found! Can not compile rs_driver_viewer!")
 endif()
-
 install(TARGETS rs_driver_viewer
         RUNTIME DESTINATION /usr/bin
 )     

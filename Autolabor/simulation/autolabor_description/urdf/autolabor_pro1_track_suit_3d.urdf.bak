@@ -1,0 +1,234 @@
+<?xml version="1.0" ?>
+<robot name="autolabor_description">
+  <property name="M_PI" value="3.14159" />
+  <property name="MESH_SCALE" value="100" />
+  
+  <link name="base_footprint">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+		<box size="0.001 0.001 0.001" />
+      </geometry>
+      <material name="Green" />
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="base_link">
+  	<visual>
+  		<origin  xyz="-0.2 0.0 0.2" rpy="0 0 0"/>
+  		<geometry>  
+        	<box size="0.50 0.30 0.40"/>  
+      	</geometry>  
+    	<material name="white">  
+        	<color rgba="1 1 1 1"/>  
+    	</material>  
+    </visual>
+    <collision>
+      <origin xyz="-0.2 0.0 0.2" rpy="0 0 0" />
+      <geometry>
+        <box size="0.50 0.50 0.40"/>
+      </geometry>
+    </collision>
+  </link>  
+
+ <joint name="base_footprint_joint" type="fixed">
+   <origin xyz="0.0 0 0.0625" rpy="0 0 0" />
+   <parent link="base_footprint" />
+   <child link="base_link" />
+ </joint>
+  
+ <link name="right_front_wheel">
+    <visual>
+    	<geometry>  
+        <cylinder length="0.035" radius="0.0625"/>
+      </geometry>
+      <material name="black">  
+        <color rgba="0 0 0 1"/>
+      </material>  
+    </visual>
+    <collision>
+    	<geometry>
+        <cylinder length="0.035" radius="0.0625"/>  
+      </geometry>
+    </collision>
+  </link>  
+  
+  <joint name="right_front_wheel_joint" type="continuous">  
+    <axis xyz="0 0 1"/>  
+      <parent link="base_link"/>  
+        <child link="right_front_wheel"/>  
+          <origin rpy="1.57 0 0" xyz="0.0 -0.2 0"/>  
+      <limit effort="100" velocity="100"/>  
+    <joint_properties damping="0.0" friction="0.0"/>  
+  </joint>
+  
+  <link name="right_back_wheel">  
+    <visual>  
+      <geometry>  
+        <cylinder length="0.02" radius="0.04"/>  
+      </geometry>  
+      <material name="black">  
+        <color rgba="0 0 0 1"/>
+      </material>  
+    </visual>  
+  </link>  
+  
+  <joint name="right_back_wheel_joint" type="continuous">  
+    <axis xyz="0 0 1"/>  
+    <parent link="base_link"/>  
+    <child link="right_back_wheel"/>  
+    <origin rpy="1.57 0 0" xyz="-0.3 -0.2 -0.0225"/>  
+    <limit effort="100" velocity="100"/>  
+    <joint_properties damping="0.0" friction="0.0"/>  
+  </joint>  
+
+  <link name="right_back_con">  
+    <visual>  
+      <geometry>  
+        <box size="0.02 0.02 0.05"/>  
+      </geometry>  
+      <material name="white">  
+        <color rgba="1 1 1 1"/>  
+      </material>  
+    </visual>  
+  </link>  
+
+  <joint name="right_back_con_joint" type="fixed">  
+    <axis xyz="0 0 1"/>  
+    <parent link="base_link"/>  
+    <child link="right_back_con" />  
+    <origin xyz="-0.3 -0.2 0" rpy="1.57 0 0" />  
+  </joint>  
+  
+  <link name="left_front_wheel">  
+    <visual>  
+      <geometry>  
+        <cylinder length="0.035" radius="0.0625"/>  
+      </geometry>  
+      <material name="black">
+        <color rgba="0 0 0 1"/>  
+      </material>  
+    </visual>  
+  </link>  
+  
+  <joint name="left_front_wheel_joint" type="continuous">  
+    <axis xyz="0 0 1"/>  
+    <parent link="base_link"/>  
+    <child link="left_front_wheel"/>  
+    <origin rpy="1.57 0 0" xyz="0.0 0.2 0"/>  
+    <limit effort="100" velocity="100"/>  
+    <joint_properties damping="0.0" friction="0.0"/>  
+  </joint>  
+  
+  <link name="left_back_wheel">  
+    <visual>  
+      <geometry>  
+        <cylinder length="0.02" radius="0.04"/>  
+      </geometry>  
+      <material name="black">  
+        <color rgba="0 0 0 1"/>  
+      </material>  
+    </visual>  
+  </link>  
+  
+  <joint name="left_back_wheel_joint" type="continuous">  
+    <axis xyz="0 0 1"/>  
+    <parent link="base_link"/>  
+    <child link="left_back_wheel"/>  
+    <origin rpy="1.57 0 0" xyz="-0.3 0.2 -0.0225"/>  
+    <limit effort="100" velocity="100"/>  
+    <joint_properties damping="0.0" friction="0.0"/>  
+  </joint>  
+  
+  <link name="left_back_con">  
+    <visual>  
+      <geometry>  
+        <box size="0.02 0.02 0.05"/>  
+      </geometry>  
+      <material name="white">  
+        <color rgba="0 0 0 1"/>  
+      </material>  
+    </visual>  
+  </link>  
+
+  <joint name="left_back_con_joint" type="fixed">  
+    <axis xyz="0 0 1"/>  
+    <parent link="base_link"/>  
+    <child link="left_back_con"/>  
+    <origin xyz="-0.3 0.2 0" rpy="1.57 0 0"/>  
+  </joint> 
+ 
+  <link name="upbox">  
+    <visual>  
+      <geometry>  
+        <box size="0.35 0.35 0.4"/>  
+      </geometry>  
+      <material name="yellow">  
+          <color rgba="1 .3 0 1"/>  
+      </material>  
+    </visual>  
+  </link>  
+  
+  <joint name="tobox" type="fixed">  
+    <parent link="base_link"/>  
+    <child link="upbox"/>  
+    <origin xyz="-0.2 0 0.37"/>  
+  </joint>  
+
+  <link name="head">
+    <visual>
+      <geometry>
+       <sphere radius="0.15"/>
+      </geometry>
+      <material name="white">
+         <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="holder" type="fixed">
+    <parent link="base_link"/>
+    <child link="head" />
+    <origin xyz="-0.2 0 0.68" />
+  </joint>
+
+  <link name="rslidar">
+    <visual>
+      <geometry>
+        <cylinder length="0.25" radius="0.12" />
+      </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+  </link>
+
+  <joint name="rslidar_joint" type="fixed">
+    <parent link="base_footprint" />
+    <child link="rslidar" />
+    <origin rpy="0 0 0" xyz="-0.05 0 0.39" />
+  </joint>
+
+  <link name="imu_link">
+    <visual>
+      <geometry>
+        <box size="0.02 0.015 0.001" />
+      </geometry>
+      <material name="white">
+        <color rgba="1 0 0 1" />
+      </material>
+    </visual>
+  </link>
+
+  <joint name="imu_link_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="imu_link" />
+    <origin xyz="0 0 0" />
+  </joint>
+</robot>

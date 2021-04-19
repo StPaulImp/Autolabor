@@ -17,5 +17,6 @@
 2. sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 100
 
 # libfreenect2
+
 1. catkin config --cmake-args -Dfreenect2_DIR=$HOME/freenect2/lib/cmake/freenect2
 2. catkin build

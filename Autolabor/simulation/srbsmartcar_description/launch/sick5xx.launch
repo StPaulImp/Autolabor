@@ -1,0 +1,5 @@
+<launch>
+    <node name="sicklms5xx" pkg="sicktoolbox_wrapper2" type="sicklms_5xx" >
+	<param name="ip" value="192.168.1.131" />
+    </node>
+</launch>

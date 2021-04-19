@@ -1,0 +1,60 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/nvidia/catkin_ws/src/srbsmartcar_description/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_be253/fast"
+make[1]: Entering directory '/home/nvidia/catkin_ws/src/srbsmartcar_description/build/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/cmTC_be253.dir/build.make CMakeFiles/cmTC_be253.dir/build
+make[2]: Entering directory '/home/nvidia/catkin_ws/src/srbsmartcar_description/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_be253.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_be253.dir/CheckSymbolExists.c.o   -c /home/nvidia/catkin_ws/src/srbsmartcar_description/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_be253
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_be253.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_be253.dir/CheckSymbolExists.c.o  -o cmTC_be253 -rdynamic 
+CMakeFiles/cmTC_be253.dir/CheckSymbolExists.c.o: In function `main':
+CheckSymbolExists.c:(.text+0x14): undefined reference to `pthread_create'
+CheckSymbolExists.c:(.text+0x18): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_be253.dir/build.make:97: recipe for target 'cmTC_be253' failed
+make[2]: *** [cmTC_be253] Error 1
+make[2]: Leaving directory '/home/nvidia/catkin_ws/src/srbsmartcar_description/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_be253/fast' failed
+make[1]: *** [cmTC_be253/fast] Error 2
+make[1]: Leaving directory '/home/nvidia/catkin_ws/src/srbsmartcar_description/build/CMakeFiles/CMakeTmp'
+
+File /home/nvidia/catkin_ws/src/srbsmartcar_description/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/nvidia/catkin_ws/src/srbsmartcar_description/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_97e31/fast"
+make[1]: Entering directory '/home/nvidia/catkin_ws/src/srbsmartcar_description/build/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/cmTC_97e31.dir/build.make CMakeFiles/cmTC_97e31.dir/build
+make[2]: Entering directory '/home/nvidia/catkin_ws/src/srbsmartcar_description/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_97e31.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_97e31.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_97e31
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_97e31.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_97e31.dir/CheckFunctionExists.c.o  -o cmTC_97e31 -rdynamic -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_97e31.dir/build.make:97: recipe for target 'cmTC_97e31' failed
+make[2]: *** [cmTC_97e31] Error 1
+make[2]: Leaving directory '/home/nvidia/catkin_ws/src/srbsmartcar_description/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_97e31/fast' failed
+make[1]: *** [cmTC_97e31/fast] Error 2
+make[1]: Leaving directory '/home/nvidia/catkin_ws/src/srbsmartcar_description/build/CMakeFiles/CMakeTmp'
+
+

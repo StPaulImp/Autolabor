@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     tf::TransformBroadcaster imu_broadcaster;
 
     ros::Rate loop_rate(40);
-    ros::Time current_time,last_time;
+    ros::Time current_time, last_time;
     current_time = ros::Time::now();
     last_time = ros::Time::now();
 
@@ -95,8 +95,8 @@ int main(int argc, char **argv)
         ROS_INFO("linear_acceleration.y:[%lf]", imu_data.linear_acceleration.y);
         imu_data.linear_acceleration.z = 0.0;
         //角速度
-        imu_data.angular_velocity.x = 0.0; 
-        imu_data.angular_velocity.y = 0.0; 
+        imu_data.angular_velocity.x = 0.0;
+        imu_data.angular_velocity.y = 0.0;
         imu_data.angular_velocity.z = odom.twist.twist.angular.z;
         IMU_pub.publish(imu_data);
 

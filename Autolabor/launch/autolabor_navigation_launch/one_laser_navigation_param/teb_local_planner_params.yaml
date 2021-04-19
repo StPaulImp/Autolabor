@@ -2,7 +2,6 @@ odom_topic: odom
 map_frame: /map
     
 # Trajectory
-  
 teb_autosize: True
 dt_ref: 0.3
 dt_hysteresis: 0.1
@@ -10,36 +9,36 @@ global_plan_overwrite_orientation: True
 global_plan_viapoint_sep : 0.5
 max_global_plan_lookahead_dist: 3.0
 feasibility_check_no_poses: 5
-    
+is_footprint_dynamic: False
+wheelbase: 0.38
+
 # Robot
-         
-max_vel_x: 0.3
+max_vel_x: 0.5
 max_vel_x_backwards: 0.2
-max_vel_theta: 0.5
+max_vel_theta: 1.57
 acc_lim_x: 0.5
 acc_lim_theta: 0.5
 min_turning_radius: 0.0
 footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
-  type: "line"
-#  radius: 0.5 # for type "circular"
-  line_start: [-0.3, 0.0] # for type "line"
-  line_end: [0.3, 0.0] # for type "line"
-#  front_offset: 0.2 # for type "two_circles"
-#  front_radius: 0.2 # for type "two_circles"
-#  rear_offset: 0.2 # for type "two_circles"
-#  rear_radius: 0.2 # for type "two_circles"
+  type: "two_circles" #"line"
+  # radius: 0.5 # for type "circular"
+  # line_start: [-0.19, 0.0] # for type "line"
+  # line_end: [0.19, 0.0] # for type "line"
+  front_offset: 0.2 # for type "two_circles"
+  front_radius: 0.5 # for type "two_circles"
+  rear_offset: 0.3 # for type "two_circles"
+  rear_radius: 0.5 # for type "two_circles"
 #  vertices: [ [0.25, -0.05], [0.18, -0.05], [0.18, -0.18], [-0.19, -0.18], [-0.25, 0], [-0.19, 0.18], [0.18, 0.18], [0.18, 0.05], [0.25, 0.05] ] # for type "polygon"
 
 # GoalTolerance
-    
-xy_goal_tolerance: 0.3
+xy_goal_tolerance: 0.2
 yaw_goal_tolerance: 0.157
 free_goal_vel: False
 
 # Obstacles
-    
-min_obstacle_dist: 0.4
-include_costmap_obstacles: True
+min_obstacle_dist: 0.5
+inflation_dist: 0.5
+include_costmap_obstacles: False
 costmap_obstacles_behind_robot_dist: 1.0
 obstacle_poses_affected: 30
 costmap_converter_plugin: ""
@@ -47,7 +46,6 @@ costmap_converter_spin_thread: True
 costmap_converter_rate: 5
 
 # Optimization
-
 no_inner_iterations: 5
 no_outer_iterations: 4
 optimization_activate: True
@@ -65,7 +63,6 @@ weight_obstacle: 50
 weight_viapoint: 1.0
 
 # Homotopy Class Planner
-
 enable_homotopy_class_planning: False
 enable_multithreading: True
 simple_exploration: False

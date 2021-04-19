@@ -1,44 +1,46 @@
 <launch>
-    <arg name="gui" default="false" />
-    <arg name="model" default="RS16" />
+    <arg name="model" default="RS16"/>  
+    <arg name="gui" default="false" /> 
     <arg name="device_ip" default="192.168.8.200" />
     <arg name="msop_port" default="6699" />
     <arg name="difop_port" default="7788" />
     <arg name="cut_angle" default="0" doc="If set at [0, 360), cut at specific angle feature activated, otherwise use the fixed packets number mode."/>
     <arg name="lidar_param_path" default="$(find rslidar_pointcloud)/data/rs_lidar_16/"/>
-    <!-- <arg name="path_to_pcap" default="$(find rslidar_pointcloud)/data/rs_lidar_16/"/>  -->
-
-    <param name="robot_description" textfile="$(find autolabor_description)/urdf/autolabor_pro1_track_suit_3d.urdf" />
+    <arg name="bag_filename" default="map_3d.bag" />
+    <!-- <arg name="path_to_pcap" default="$(find rslidar_pointcloud)/data/rs_lidar_16/"/> -->
+    <param name="use_sim_time" value="false" />
+    <param name="robot_description" textfile="$(find autolabor_description)/urdf/autolabor_pro1_track_suit_3d.urdf" />  
     <param name="use_gui" value="$(arg gui)" />
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
+        <!-- <param name="publish_frequency" type="double" value="20.0" /> -->
+    </node> 
     
-
     <!-- autolabor pro 1 驱动 -->
     <node name="test_vehicle" pkg="self_driving" type="test_vehicle" output="screen">
         <remap from="/wheel_odom" to="/odom"/>
         <param name="port_name" value="can0" />
         <param name="odom_frame" value="odom" />
-        <param name="base_frame" value="base_link" />
-
+        <param name="base_frame" value="base_footprint" />
         <param name="baud_rate" value="500000" />
         <param name="control_rate" value="10" />
         <param name="sensor_rate" value="10" />
-
 	    <param name="publish_tf" value="true" />
         <!-- <param name="linear_gain" value="4.0" />
         <param name="angular_gain" value="2.0" /> -->
     </node>
 
     <!-- 雷达驱动 速腾16线-->
-    <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
+    <!-- <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
         <param name="model" value="$(arg model)"/>
         <param name="device_ip" value="$(arg device_ip)" />
         <param name="msop_port" value="$(arg msop_port)" />
         <param name="difop_port" value="$(arg difop_port)"/>
         <param name="cut_angle" value="$(arg cut_angle)"/>
-        <!-- <param name="pcap" value="$(arg path_to_pcap)"/> -->
-    </node>
+        <param name="pcap" value="$(arg path_to_pcap)"/>
+    </node> -->
 
-    <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
+    <!-- <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
         <param name="model" value="$(arg model)"/>
         <param name="curves_path" value="$(arg lidar_param_path)/curves.csv" />
         <param name="angle_path" value="$(arg lidar_param_path)/angle.csv" />
@@ -47,23 +49,25 @@
         <param name="min_distance" value="0.4"/>
         <param name="resolution_type" value="0.5"/>
         <param name="intensity_mode" value="1"/>
+    </node> -->
+    <node pkg="rslidar_sdk" name="rslidar_sdk_node" type="rslidar_sdk_node" output="screen">
     </node>
-    
     <!-- run pointcloud_to_laserscan node -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
         <remap from="cloud_in" to="/rslidar_points"/>
         <rosparam>
             # target_frame: rslidar # Leave disabled to output scan in pointcloud frame
-            transform_tolerance: 0.01
+            transform_tolerance: 0.1
             min_height: -0.5
             max_height: 1.2
  
             angle_min: -3.1415926 # -M_PI
             angle_max: 3.1415926 # M_PI
-            angle_increment: 0.003 # 0.17degree
-            scan_time: 0.4
+            angle_increment: 0.003 # 0.17degree 003
+            scan_time: 0.1
             range_min: 0.1
-            range_max: 100
+            range_max: 20
+
             use_inf: true
             inf_epsilon: 1.0
  
@@ -74,8 +78,7 @@
             concurrency_level: 1
         </rosparam>
     </node>
-    <!-- <node pkg="rslidar_sdk" name="rslidar_sdk_node" type="rslidar_sdk_node" output="screen">
-    </node> -->
+
     <!-- 键盘遥控 -->
     <node name="keyboard_control" pkg="autolabor_keyboard_control" type="keyboard_control_node">
         <param name="linear_min" value="0.3" />
@@ -95,7 +98,7 @@
           -configuration_basename one_laser_navigation_3d.lua
           -load_state_filename $(find autolabor_navigation_launch)/map/map.pbstream"
       output="screen">
-      <!-- <remap from="points2" to="rslidar_points" /> -->
+      <remap from="points2" to="rslidar_points" />
     </node>
 
     <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros" type="cartographer_occupancy_grid_node" args="-resolution 0.05" />
@@ -108,9 +111,8 @@
         <rosparam file="$(find autolabor_navigation_launch)/one_laser_navigation_param/global_planner_params.yaml" command="load" ns="GlobalPlanner"/>
         <rosparam file="$(find autolabor_navigation_launch)/one_laser_navigation_param/teb_local_planner_params.yaml" command="load" ns="TebLocalPlannerROS"/>
     </node>
-
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
-    <!-- <node name="imu_sim" pkg="imu_sim" type="imu_sim_node"/> -->
+    
+    <node name="imu_sim" pkg="imu_sim" type="imu_sim_node"/>
     <node name="rviz" pkg="rviz" type="rviz" required="true"
       args="-d $(find cartographer_ros)/configuration_files/demo_3d.rviz" />
 </launch>
